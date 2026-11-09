@@ -1,0 +1,24 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "STM32F303",
+            "includePath": [
+                "${workspaceFolder}/Core/Inc",
+                "${workspaceFolder}/Drivers/STM32F3xx_HAL_Driver/Inc",
+                "${workspaceFolder}/Drivers/STM32F3xx_HAL_Driver/Inc/Legacy",
+                "${workspaceFolder}/Drivers/CMSIS/Include",
+                "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F3xx/Include",
+                "${workspaceFolder}/Inc"
+            ],
+            "defines": [
+                "STM32F303xC",
+                "USE_HAL_DRIVER"
+            ],
+            "compilerPath": "D:/gcc-arm-none-eabi/bin/arm-none-eabi-gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "windows-gcc-arm"
+        }
+    ]
+}
