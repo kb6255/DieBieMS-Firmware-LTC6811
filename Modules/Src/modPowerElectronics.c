@@ -1,4 +1,4 @@
-#include "modPowerElectronics.h"
+﻿#include "modPowerElectronics.h"
 
 modPowerElectricsPackStateTypedef *modPowerElectronicsPackStateHandle;
 modConfigGeneralConfigStructTypedef *modPowerElectronicsGeneralConfigHandle;
@@ -12,7 +12,7 @@ uint32_t modPowerElectronicsTempMeasureDelayLastTick;
 uint32_t modPowerElectronicsChargeCurrentDetectionLastTick;
 uint32_t modPowerElectronicsBalanceModeActiveLastTick;
 uint8_t  modPowerElectronicsUnderAndOverVoltageErrorCount;
-driverLTC6803ConfigStructTypedef modPowerElectronicsLTCconfigStruct;
+driverLTC6811ConfigStructTypedef modPowerElectronicsLTCconfigStruct;
 bool     modPowerElectronicsAllowForcedOnState;
 uint16_t modPowerElectronicsTemperatureArray[3];
 uint16_t tempTemperature;
@@ -27,77 +27,79 @@ void modPowerElectronicsInit(modPowerElectricsPackStateTypedef *packState, modCo
 	modPowerElectronicsISLErrorCount = 0;
 	
 	// Init pack status
-	modPowerElectronicsPackStateHandle->throttleDutyCharge       = 0;
-	modPowerElectronicsPackStateHandle->throttleDutyDischarge    = 0;
-	modPowerElectronicsPackStateHandle->SoC                      = 0.0f;
-	modPowerElectronicsPackStateHandle->SoCCapacityAh            = 0.0f;
-	modPowerElectronicsPackStateHandle->operationalState         = OP_STATE_INIT;
+	modPowerElectronicsPackStateHandle->throttleDutyCharge       = 0;// 初始化充电油门占空比
+	modPowerElectronicsPackStateHandle->throttleDutyDischarge    = 0;// 初始化放电油门占空比
+	modPowerElectronicsPackStateHandle->SoC                      = 0.0f;// 初始化SoC为0
+	modPowerElectronicsPackStateHandle->SoCCapacityAh            = 0.0f;// 初始化SoC容量Ah为0
+	modPowerElectronicsPackStateHandle->operationalState         = OP_STATE_INIT;// 初始化操作状态为初始状态
 	modPowerElectronicsPackStateHandle->packVoltage              = 0.0f;
 	modPowerElectronicsPackStateHandle->packCurrent              = 0.0f;
 	modPowerElectronicsPackStateHandle->packPower                = 0.0f;
-	modPowerElectronicsPackStateHandle->loCurrentLoadCurrent     = 0.0f;
-	modPowerElectronicsPackStateHandle->loCurrentLoadVoltage     = 0.0f;
-	modPowerElectronicsPackStateHandle->cellVoltageHigh          = 0.0f;
-	modPowerElectronicsPackStateHandle->cellVoltageLow           = 0.0f;
-	modPowerElectronicsPackStateHandle->cellVoltageAverage       = 0.0;
-	modPowerElectronicsPackStateHandle->disChargeDesired         = false;
-	modPowerElectronicsPackStateHandle->disChargeLCAllowed       = true;
-	modPowerElectronicsPackStateHandle->disChargeHCAllowed       = true;
-	modPowerElectronicsPackStateHandle->preChargeDesired         = false;
-	modPowerElectronicsPackStateHandle->chargeDesired            = false;
-	modPowerElectronicsPackStateHandle->chargeAllowed 					 = true;
-	modPowerElectronicsPackStateHandle->safetyOverCANHCSafeNSafe = false;
-	modPowerElectronicsPackStateHandle->chargeBalanceActive      = false;
-	modPowerElectronicsPackStateHandle->chargeCurrentDetected    = false;
-	modPowerElectronicsPackStateHandle->powerButtonActuated      = false;
-	modPowerElectronicsPackStateHandle->packInSOA                = true;
-	modPowerElectronicsPackStateHandle->watchDogTime             = 255;
-	modPowerElectronicsPackStateHandle->packOperationalCellState = PACK_STATE_NORMAL;
-	modPowerElectronicsPackStateHandle->temperatures[0]          = 200.0f;
-	modPowerElectronicsPackStateHandle->temperatures[1]          = 200.0f;
-	modPowerElectronicsPackStateHandle->temperatures[2]          = 200.0f;
-	modPowerElectronicsPackStateHandle->temperatures[3]          = 200.0f;
-	modPowerElectronicsPackStateHandle->tempBatteryHigh          = 0.0f;
-	modPowerElectronicsPackStateHandle->tempBatteryLow           = 0.0f;
-	modPowerElectronicsPackStateHandle->tempBatteryAverage       = 0.0f;
-	modPowerElectronicsPackStateHandle->tempBMSHigh              = 0.0f;
-	modPowerElectronicsPackStateHandle->tempBMSLow               = 0.0f;
-	modPowerElectronicsPackStateHandle->tempBMSAverage           = 0.0f;
+	modPowerElectronicsPackStateHandle->loCurrentLoadCurrent     = 0.0f;// 初始化低电流负载电流为0
+	modPowerElectronicsPackStateHandle->loCurrentLoadVoltage     = 0.0f;// 初始化低电流负载电压为0
+	modPowerElectronicsPackStateHandle->cellVoltageHigh          = 0.0f;// 初始化电池电压高为0
+	modPowerElectronicsPackStateHandle->cellVoltageLow           = 0.0f;// 初始化电池电压低为0
+	modPowerElectronicsPackStateHandle->cellVoltageAverage       = 0.0;// 初始化电池电压平均为0
+	modPowerElectronicsPackStateHandle->disChargeDesired         = false;// 初始化放电需求为false
+	modPowerElectronicsPackStateHandle->disChargeLCAllowed       = true;// 初始化放电LC允许为true
+	modPowerElectronicsPackStateHandle->disChargeHCAllowed       = true;// 初始化放电HC允许为true
+	modPowerElectronicsPackStateHandle->preChargeDesired         = false;// 初始化预充电需求为false
+	modPowerElectronicsPackStateHandle->chargeDesired            = false;// 初始化充电需求为false
+	modPowerElectronicsPackStateHandle->chargeAllowed 					 = true;// 初始化充电允许为true
+	modPowerElectronicsPackStateHandle->safetyOverCANHCSafeNSafe = false;// 初始化CAN HC安全N安全为false
+	modPowerElectronicsPackStateHandle->chargeBalanceActive      = false;// 初始化充电均衡激活为false
+	modPowerElectronicsPackStateHandle->chargeCurrentDetected    = false;// 初始化充电电流检测为false
+	modPowerElectronicsPackStateHandle->powerButtonActuated      = false;// 初始化电源按钮操作为false
+	modPowerElectronicsPackStateHandle->packInSOA                = true;// 初始化电池在SOA内为true
+	modPowerElectronicsPackStateHandle->watchDogTime             = 255;// 初始化看门狗时间为255
+	modPowerElectronicsPackStateHandle->packOperationalCellState = PACK_STATE_NORMAL;// 初始化电池操作状态为正常
+	modPowerElectronicsPackStateHandle->temperatures[0]          = 200.0f;// 初始化温度0为200
+	modPowerElectronicsPackStateHandle->temperatures[1]          = 200.0f;// 初始化温度1为200
+	modPowerElectronicsPackStateHandle->temperatures[2]          = 200.0f;// 初始化温度2为200
+	modPowerElectronicsPackStateHandle->temperatures[3]          = 200.0f;// 初始化温度3为200
+	modPowerElectronicsPackStateHandle->tempBatteryHigh          = 0.0f;// 初始化电池温度高为0
+	modPowerElectronicsPackStateHandle->tempBatteryLow           = 0.0f;// 初始化电池温度低为0
+	modPowerElectronicsPackStateHandle->tempBatteryAverage       = 0.0f;// 初始化电池温度平均为0
+	modPowerElectronicsPackStateHandle->tempBMSHigh              = 0.0f;// 初始化BMS温度高为0
+	modPowerElectronicsPackStateHandle->tempBMSLow               = 0.0f;// 初始化BMS温度低为0
+	modPowerElectronicsPackStateHandle->tempBMSAverage           = 0.0f;// 初始化BMS温度平均为0
 	
-  modPowerElectronicsInitISL();
+  modPowerElectronicsInitISL();// 初始化ISL28022
 	
 	// Init internal ADC
-	driverHWADCInit();
-	driverHWSwitchesInit();
-	driverHWSwitchesSetSwitchState(SWITCH_DRIVER,SWITCH_SET);																// Enable FET Driver
+	driverHWADCInit();// 初始化内部ADC
+	driverHWSwitchesInit();// 初始化硬件开关
+	driverHWSwitchesSetSwitchState(SWITCH_DRIVER,SWITCH_SET);// 使能FET驱动器
 	
 	// Init battery stack monitor
-	driverLTC6803ConfigStructTypedef configStruct;
-	configStruct.WatchDogFlag = false;																											// Don't change watchdog
-	configStruct.GPIO1 = false;
-	configStruct.GPIO2 = true;
-	configStruct.LevelPolling = true;																												// This wil make the LTC SDO high (and low when adc is busy) instead of toggling when polling for ADC ready and AD conversion finished.
-	configStruct.CDCMode = 2;																																// Comperator period = 13ms, Vres powerdown = no.
-	configStruct.DisChargeEnableMask = 0x0000;																							// Disable all discharge resistors
-	configStruct.noOfCells = modPowerElectronicsGeneralConfigHandle->noOfCells;							// Number of cells that can cause interrupt
-	configStruct.CellVoltageConversionMode = LTC6803StartCellVoltageADCConversionAll;				// Use normal cell conversion mode, in the future -> check for lose wires on initial startup.
-  configStruct.CellUnderVoltageLimit = modPowerElectronicsGeneralConfigHandle->cellHardUnderVoltage;// Set under limit to XV	-> This should cause error state
-	configStruct.CellOverVoltageLimit = modPowerElectronicsGeneralConfigHandle->cellHardOverVoltage;	// Set upper limit to X.XXV  -> This should cause error state
-	
-	driverSWLTC6803Init(configStruct,TotalLTCICs);																					// Config the LTC6803 and start measuring
-	
-	modPowerElectronicsChargeCurrentDetectionLastTick = HAL_GetTick();
-	modPowerElectronicsBalanceModeActiveLastTick = HAL_GetTick();
-};
+	driverLTC6811ConfigStructTypedef configStruct;// LTC6811配置结构体
+	configStruct.ADCOPT = 0;// ADC选项
+	configStruct.REFON = 1;// 使能参考电压
+	configStruct.GPIO[0] = false;// GPIO0
+	configStruct.GPIO[1] = false;// GPIO1
+	configStruct.GPIO[2] = true;// GPIO2
+	configStruct.GPIO[3] = false;// GPIO3
+	configStruct.GPIO[4] = false;// GPIO4
+	configStruct.CDCMode = 2;// CDC模式
+	configStruct.DisChargeEnableMask = 0x0000;// 放电使能掩码
+	configStruct.noOfCells = modPowerElectronicsGeneralConfigHandle->noOfCells;// 电池数量
+	configStruct.CellUnderVoltageLimit = modPowerElectronicsGeneralConfigHandle->cellHardUnderVoltage;// 电池电压下限
+	configStruct.CellOverVoltageLimit = modPowerElectronicsGeneralConfigHandle->cellHardOverVoltage;// 电池电压上限
 
+	driverSWLTC6811Init(configStruct, TotalLTCICs);// 初始化LTC6811
+	
+	modPowerElectronicsChargeCurrentDetectionLastTick = HAL_GetTick();// 初始化充电电流检测时间
+	modPowerElectronicsBalanceModeActiveLastTick = HAL_GetTick();// 初始化均衡模式激活时间
+};
+// 电力电子任务
 bool modPowerElectronicsTask(void) {
 	bool returnValue = false;
 	
-	if(modDelayTick1ms(&modPowerElectronicsMeasureIntervalLastTick,100)) {
-		// reset tick for LTC Temp start conversion delay
+	if(modDelayTick1ms(&modPowerElectronicsMeasureIntervalLastTick,100)) {// 每100毫秒执行一次测量
+		// 重置 LTC 温度启动转换延时的计时
 		modPowerElectronicsTempMeasureDelayLastTick = HAL_GetTick();
 		
-		// Collect low current current path data and check validity + recover if invalid.
+		//采集小电流通路数据并校验有效性，若数据无效则执行恢复操作。
 		driverSWISL28022GetBusVoltage(ISL28022_MASTER_ADDRES,ISL28022_MASTER_BUS,&modPowerElectronicsTempPackVoltage,0.004f);
 		if(fabs(modPowerElectronicsTempPackVoltage - modPowerElectronicsGeneralConfigHandle->noOfCells*modPowerElectronicsPackStateHandle->cellVoltageAverage) < 1.0f) {    // If the error is smaller than one volt continue normal operation. 
 			modPowerElectronicsPackStateHandle->packVoltage = modPowerElectronicsTempPackVoltage;
@@ -118,21 +120,21 @@ bool modPowerElectronicsTask(void) {
 		modPowerElectronicsPackStateHandle->packPower   = modPowerElectronicsPackStateHandle->packCurrent * modPowerElectronicsPackStateHandle->packVoltage;
 		
 		// Check if LTC is still running
-		driverSWLTC6803ReadConfig(&modPowerElectronicsLTCconfigStruct);
-		if(!modPowerElectronicsLTCconfigStruct.CDCMode)
-			driverSWLTC6803ReInit();																														// Something went wrong, reinit the battery stack monitor.
+		driverSWLTC6811ReadConfig(&modPowerElectronicsLTCconfigStruct);// 读取LTC6811配置寄存器值
+		if(!modPowerElectronicsLTCconfigStruct.CDCMode)// 检查LTC6811是否仍在运行
+			driverSWLTC6811ReInit();// 重新初始化LTC6811
 		else
-			driverSWLTC6803ReadCellVoltages(modPowerElectronicsPackStateHandle->cellVoltagesIndividual);
+			driverSWLTC6811ReadCellVoltages(modPowerElectronicsPackStateHandle->cellVoltagesIndividual);// 读取LTC6811电池电压
 		
-		// Check if LTC has discharge resistor enabled while not charging
+		//检查 LTC 在非充电状态下是否启用放电电阻
 		if(!modPowerElectronicsPackStateHandle->chargeDesired && modPowerElectronicsLTCconfigStruct.DisChargeEnableMask)
-			driverSWLTC6803ReInit();																														// Something went wrong, reinit the battery stack monitor.
+			driverSWLTC6811ReInit();																														// Something went wrong, reinit the battery stack monitor.
 		
-		// Collect LTC temperature data
-		driverSWLTC6803ReadTempVoltages(modPowerElectronicsTemperatureArray);
-		modPowerElectronicsPackStateHandle->temperatures[0] = driverSWLTC6803ConvertTemperatureExt(modPowerElectronicsTemperatureArray[0],modPowerElectronicsGeneralConfigHandle->NTC25DegResistance[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCTopResistor[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCBetaFactor[modConfigNTCGroupLTCExt],25.0f);
-		modPowerElectronicsPackStateHandle->temperatures[1] = driverSWLTC6803ConvertTemperatureExt(modPowerElectronicsTemperatureArray[1],modPowerElectronicsGeneralConfigHandle->NTC25DegResistance[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCTopResistor[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCBetaFactor[modConfigNTCGroupLTCExt],25.0f);
-		modPowerElectronicsPackStateHandle->temperatures[2] = driverSWLTC6803ConvertTemperatureInt(modPowerElectronicsTemperatureArray[2]);
+		// 采集 LTC 温度数据
+		driverSWLTC6811ReadTempVoltages(modPowerElectronicsTemperatureArray);
+		modPowerElectronicsPackStateHandle->temperatures[0] = driverSWLTC6811ConvertTemperatureExt(modPowerElectronicsTemperatureArray[0],modPowerElectronicsGeneralConfigHandle->NTC25DegResistance[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCTopResistor[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCBetaFactor[modConfigNTCGroupLTCExt],25.0f);
+		modPowerElectronicsPackStateHandle->temperatures[1] = driverSWLTC6811ConvertTemperatureExt(modPowerElectronicsTemperatureArray[1],modPowerElectronicsGeneralConfigHandle->NTC25DegResistance[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCTopResistor[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCBetaFactor[modConfigNTCGroupLTCExt],25.0f);
+		modPowerElectronicsPackStateHandle->temperatures[2] = driverSWLTC6811ConvertTemperatureInt(modPowerElectronicsTemperatureArray[2]);
 		// get STM32 ADC NTC temp
 		driverHWADCGetNTCValue(&modPowerElectronicsPackStateHandle->temperatures[3],modPowerElectronicsGeneralConfigHandle->NTC25DegResistance[modConfigNTCGroupMasterPCB],modPowerElectronicsGeneralConfigHandle->NTCTopResistor[modConfigNTCGroupMasterPCB],modPowerElectronicsGeneralConfigHandle->NTCBetaFactor[modConfigNTCGroupMasterPCB],25.0f);
 		
@@ -146,8 +148,8 @@ bool modPowerElectronicsTask(void) {
 		modPowerElectronicsSubTaskBalaning();
 		
 		// Measure cell voltages
-		driverSWLTC6803StartCellVoltageConversion();
-		driverSWLTC6803ResetCellVoltageRegisters();
+		driverSWLTC6811StartCellVoltageConversion();
+		driverSWLTC6811ResetCellVoltageRegisters();
 		
 		// Check and respond to the measured voltage values
 		modPowerElectronicsSubTaskVoltageWatch();
@@ -180,8 +182,8 @@ bool modPowerElectronicsTask(void) {
 	}else
 		returnValue = false;
 	
-	if(modDelayTick1msNoRST(&modPowerElectronicsTempMeasureDelayLastTick,50))
-		driverSWLTC6803StartTemperatureVoltageConversion();
+	if(modDelayTick1msNoRST(&modPowerElectronicsTempMeasureDelayLastTick,50))// 每50毫秒启动一次温度电压转换
+		driverSWLTC6811StartTemperatureVoltageConversion();// 启动温度电压转换
 	
 	return returnValue;
 };
@@ -269,7 +271,7 @@ void modPowerElectronicsSubTaskBalaning(void) {
 	static uint16_t lastCellBalanceRegister = 0;
 	static bool delaytoggle = false;
 	uint16_t cellBalanceMaskEnableRegister = 0;
-	driverLTC6803CellsTypedef sortedCellArray[modPowerElectronicsGeneralConfigHandle->noOfCells];
+	driverLTC6811CellsTypedef sortedCellArray[modPowerElectronicsGeneralConfigHandle->noOfCells];
 	
 	if(modDelayTick1ms(&modPowerElectronicsCellBalanceUpdateLastTick,delayTimeHolder)) {
 		delaytoggle ^= true;
@@ -296,7 +298,7 @@ void modPowerElectronicsSubTaskBalaning(void) {
 		modPowerElectronicsPackStateHandle->cellBalanceResistorEnableMask = cellBalanceMaskEnableRegister;
 		
 		if(lastCellBalanceRegister != cellBalanceMaskEnableRegister)
-			driverSWLTC6803EnableBalanceResistors(cellBalanceMaskEnableRegister);
+			driverSWLTC6811EnableBalanceResistors(cellBalanceMaskEnableRegister);// 使能电池均衡电阻
 		lastCellBalanceRegister = cellBalanceMaskEnableRegister;
 	}
 };
@@ -306,7 +308,7 @@ void modPowerElectronicsSubTaskVoltageWatch(void) {
 	static bool lastChargeAllowed = false;
 	uint16_t hardUnderVoltageFlags, hardOverVoltageFlags;
 	
-	driverSWLTC6803ReadVoltageFlags(&hardUnderVoltageFlags,&hardOverVoltageFlags);
+	driverSWLTC6811ReadVoltageFlags(&hardUnderVoltageFlags,&hardOverVoltageFlags);// 读取电池电压标志
 	modPowerElectronicsCalculateCellStats();
 	
 	if(modPowerElectronicsPackStateHandle->packOperationalCellState != PACK_STATE_ERROR_HARD_CELLVOLTAGE) {
@@ -392,9 +394,9 @@ void modPowerElectronicsUpdateSwitches(void) {
 		driverHWSwitchesSetSwitchState(SWITCH_CHARGE,(driverHWSwitchesStateTypedef)SWITCH_RESET);
 };
 
-void modPowerElectronicsSortCells(driverLTC6803CellsTypedef *cells, uint8_t cellCount) {
+void modPowerElectronicsSortCells(driverLTC6811CellsTypedef *cells, uint8_t cellCount) {
 	int i,j;
-	driverLTC6803CellsTypedef value;
+	driverLTC6811CellsTypedef value;
 
 	for(i=0 ; i<(cellCount-1) ; i++) {
 		for(j=0 ; j<(cellCount-i-1) ; j++) {
@@ -549,11 +551,11 @@ float modPowerElectronicsMapVariableFloat(float inputVariable, float inputLowerL
 
 void modPowerElectronicsInitISL(void) {
 	// Init BUS monitor
-	driverSWISL28022InitStruct ISLInitStruct;
-	ISLInitStruct.ADCSetting = ADC_128_64010US;
-	ISLInitStruct.busVoltageRange = BRNG_60V_1;
-	ISLInitStruct.currentShuntGain = PGA_4_160MV;
-	ISLInitStruct.Mode = MODE_SHUNTANDBUS_CONTINIOUS;
+	driverSWISL28022InitStruct ISLInitStruct;// ISL28022初始化结构体
+	ISLInitStruct.ADCSetting = ADC_128_64010US;// ADC设置
+	ISLInitStruct.busVoltageRange = BRNG_60V_1;// 电压电压范围
+	ISLInitStruct.currentShuntGain = PGA_4_160MV;// 电流分流增益
+	ISLInitStruct.Mode = MODE_SHUNTANDBUS_CONTINIOUS;// 模式
 	driverSWISL28022Init(ISL28022_MASTER_ADDRES,ISL28022_MASTER_BUS,ISLInitStruct);
 }
 
@@ -584,4 +586,3 @@ bool modPowerElectronicsHCSafetyCANAndPowerButtonCheck(void) {
 void modPowerElectronicsResetBalanceModeActiveTimeout(void) {
 	modPowerElectronicsBalanceModeActiveLastTick = HAL_GetTick();
 }
-

@@ -698,8 +698,8 @@
       <tvExp>0</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
-      <PathWithFileName>..\Drivers\SWDrivers\Src\driverSWLTC6803.c</PathWithFileName>
-      <FilenameWithoutPath>driverSWLTC6803.c</FilenameWithoutPath>
+      <PathWithFileName>..\Drivers\SWDrivers\Src\driverSWLTC6811.c</PathWithFileName>
+      <FilenameWithoutPath>driverSWLTC6811.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>

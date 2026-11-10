@@ -66,10 +66,10 @@ typedef enum {
 } driverSWISL28022Registers;
 
 typedef struct {
-	driverSWISL28022BRNGConfigRegister busVoltageRange;
-	uint8_t currentShuntGain;
-	uint8_t ADCSetting;
-	uint8_t Mode;
+	driverSWISL28022BRNGConfigRegister busVoltageRange;// 电压电压范围
+	uint8_t currentShuntGain;// 电流分流增益
+	uint8_t ADCSetting;// ADC设置
+	uint8_t Mode;// 模式
 } driverSWISL28022InitStruct;
 
 void driverSWISL28022Init(uint8_t i2cAddres, uint8_t i2cBus, driverSWISL28022InitStruct initStruct);

@@ -32,7 +32,7 @@ int main(void) {
   SystemClock_Config();
 	modPowerStateInit(P_STAT_SET);																						// Enable power supply to keep operational// 初始化电源状态机
 	mainWatchDogInitAndStart();// 初始化并启动看门狗
-	// All following functions should be called in exactly this order
+	// 所有后续函数必须严格按照该顺序调用
 	generalConfig            = modConfigInit();																// Tell EEPROM the needed size for ConfigStruct// 初始化配置结构体
 	generalStateOfCharge     = modStateOfChargeInit(&packState,generalConfig);// Tell EEPROM the needed size for StatOfChargeStruct// 初始化状态结构体
 	driverSWStorageManagerInit();																							// Initializes EEPROM Memory// 初始化EEPROM存储管理器
@@ -46,7 +46,7 @@ int main(void) {
 	modCANInit(&packState,generalConfig);																			// Will act on CAN message requests// 初始化CAN通信任务
 	modEffectInit();																													// Controls the effects on LEDs + buzzer// 初始化效果结构体
 	modEffectChangeState(STAT_LED_DEBUG,STAT_FLASH);													// Set Debug LED to blinking mode// 设置调试LED为闪烁模式 
-	modPowerElectronicsInit(&packState,generalConfig);												// Will measure all voltages and store them in packState// 初始化电源电子任务
+	modPowerElectronicsInit(&packState,generalConfig);												// 将测量所有电压并将其存入 packState// 初始化电源电子任务
 	modOperationalStateInit(&packState,generalConfig,generalStateOfCharge);		// Will keep track of and control operational state (eg. normal use / charging / balancing / power down)// 初始化操作状态机
 	modHiAmpInit(&packState,generalConfig);																		// Initialize the HiAmp shield enviroment if any// 初始化HiAmp环境  
 	
@@ -59,8 +59,8 @@ int main(void) {
 		modHiAmpTask();// 处理HiAmp任务             
 		mainWatchDogReset();// 重置看门狗 
 		
-		if(modPowerElectronicsTask())																						// Handle power electronics task// 处理电源电子任务
-			modStateOfChargeProcess();																						// If there is new data handle SoC estimation// 如果有新数据，处理SoC估计
+		if(modPowerElectronicsTask())																						// 处理电源电子任务
+			modStateOfChargeProcess();																						// 如果有新数据，处理SoC估计
   }
 }
 

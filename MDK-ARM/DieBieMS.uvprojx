@@ -571,9 +571,9 @@
               <FilePath>..\Drivers\SWDrivers\Src\driverSWISL28022.c</FilePath>
             </File>
             <File>
-              <FileName>driverSWLTC6803.c</FileName>
+              <FileName>driverSWLTC6811.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Drivers\SWDrivers\Src\driverSWLTC6803.c</FilePath>
+              <FilePath>..\Drivers\SWDrivers\Src\driverSWLTC6811.c</FilePath>
             </File>
             <File>
               <FileName>driverSWPCAL6416.c</FileName>

@@ -3,7 +3,7 @@
 
 #include "driverSWISL28022.h"
 #include "driverHWADC.h"
-#include "driverSWLTC6803.h"
+#include "driverSWLTC6811.h"
 #include "driverHWSwitches.h"
 #include "driverSWEMC2305.h"
 #include "modDelay.h"
@@ -43,67 +43,67 @@ typedef enum {
 
 typedef struct {
 	// Master BMS
-	uint8_t  throttleDutyCharge;
-	uint8_t  throttleDutyDischarge;
-	float    SoC;
-	float    SoCCapacityAh;
-	OperationalStateTypedef operationalState;
-	float    packVoltage;
-	float    packCurrent;
-	float    packPower;
-	float    loCurrentLoadCurrent;
-	float    loCurrentLoadVoltage;
-	float    cellVoltageHigh;
-	float    cellVoltageLow;
-	float    cellVoltageAverage;
-	float    cellVoltageMisMatch;
-	uint16_t cellBalanceResistorEnableMask;
-	float    temperatures[NoOfTempSensors];
-	float    tempBatteryHigh;
-	float    tempBatteryLow;
-	float    tempBatteryAverage;
-	float    tempBMSHigh;
-	float    tempBMSLow;
-	float    tempBMSAverage;
-	uint8_t  preChargeDesired;
-	uint8_t  disChargeDesired;
-	uint8_t  disChargeLCAllowed;
-	uint8_t  disChargeHCAllowed;
-	uint8_t  chargeDesired;
-	uint8_t  chargeAllowed;
-	uint8_t  safetyOverCANHCSafeNSafe;
-	uint8_t  chargeCurrentDetected;
-	uint8_t  chargeBalanceActive;
-	uint8_t  powerButtonActuated;
-	uint8_t  packInSOA;
-	uint8_t  watchDogTime;
-	driverLTC6803CellsTypedef cellVoltagesIndividual[NoOfCellsPossibleOnChip];
-	modPowerElectronicsPackOperationalCellStatesTypedef packOperationalCellState;
+	uint8_t  throttleDutyCharge;// 充电占空比
+	uint8_t  throttleDutyDischarge;// 放电占空比
+	float    SoC;// 电池荷电状态
+	float    SoCCapacityAh;// 电池荷电容量Ah
+	OperationalStateTypedef operationalState;// 操作状态
+	float    packVoltage;// 电池电压
+	float    packCurrent;// 电池电流
+	float    packPower;// 电池功率
+	float    loCurrentLoadCurrent;// 低电流负载电流
+	float    loCurrentLoadVoltage;// 低电流负载电压
+	float    cellVoltageHigh;// 电池电压高
+	float    cellVoltageLow;// 电池电压低
+	float    cellVoltageAverage;// 电池电压平均
+	float    cellVoltageMisMatch;// 电池电压不匹配
+	uint16_t cellBalanceResistorEnableMask;// 电池平衡电阻使能掩码
+	float    temperatures[NoOfTempSensors];// 温度传感器温度
+	float    tempBatteryHigh;// 电池温度高
+	float    tempBatteryLow;// 电池温度低
+	float    tempBatteryAverage;// 电池温度平均
+	float    tempBMSHigh;// BMS温度高
+	float    tempBMSLow;// BMS温度低
+	float    tempBMSAverage;// BMS温度平均
+	uint8_t  preChargeDesired;// 预充电需求
+	uint8_t  disChargeDesired;// 放电需求
+	uint8_t  disChargeLCAllowed;// 放电LC允许
+	uint8_t  disChargeHCAllowed;// 放电HC允许
+	uint8_t  chargeDesired;// 充电需求
+	uint8_t  chargeAllowed;// 充电允许
+	uint8_t  safetyOverCANHCSafeNSafe;// CAN HC安全N安全
+	uint8_t  chargeCurrentDetected;// 充电电流检测
+	uint8_t  chargeBalanceActive;// 充电均衡激活
+	uint8_t  powerButtonActuated;// 电源按钮操作
+	uint8_t  packInSOA;// 电池在SOA内
+	uint8_t  watchDogTime;// 看门狗时间
+	driverLTC6811CellsTypedef cellVoltagesIndividual[NoOfCellsPossibleOnChip];// 电池电压
+	modPowerElectronicsPackOperationalCellStatesTypedef packOperationalCellState;// 电池操作状态0000
 	
 	// Slave BMS
-	uint8_t  hiAmpShieldPresent;
-	float    hiCurrentLoadVoltage;
-	float    hiCurrentLoadCurrent;
-	float		 hiCurrentLoadPower;
-	float    auxVoltage;
-	float    auxCurrent;
-	float		 auxPower;
-	uint8_t  aux0EnableDesired;
-	uint8_t  aux0Enabled;
-	uint8_t  aux0LoadIncorrect;
-	uint8_t  aux1EnableDesired;
-	uint8_t  aux1Enabled;
-	uint8_t  aux1LoadIncorrect;
-	uint8_t  auxDCDCEnabled;
-	uint8_t  auxDCDCOutputOK;
-	float    humidity;
-	uint8_t  hiLoadEnabled;
-	uint8_t  hiLoadPreChargeEnabled;
-	uint8_t  hiLoadPreChargeError;
-	uint8_t	 IOIN1;
-	uint8_t  IOOUT0;
-	uint8_t  FANSpeedDutyDesired;
-	driverSWEMC2305FanStatusTypeDef FANStatus;
+	uint8_t  hiAmpShieldPresent;// 高电流负载屏蔽
+	float    hiCurrentLoadVoltage;// 高电流负载电压
+	float    hiCurrentLoadCurrent;// 高电流负载电流
+	float		 hiCurrentLoadPower;// 高电流负载功率
+	float    auxVoltage;// 辅助电压
+	float    auxCurrent;// 辅助电流
+	float		 auxPower;// 辅助功率
+	uint8_t  aux0EnableDesired;// 辅助0使能需求
+	uint8_t  aux0Enabled;// 辅助0使能
+	uint8_t  aux0LoadIncorrect;// 辅助0负载错误
+	uint8_t  aux1EnableDesired;// 辅助1使能需求
+	uint8_t  aux1Enabled;// 辅助1使能
+	uint8_t  aux1LoadIncorrect;// 辅助1负载错误
+	uint8_t  auxDCDCEnabled;// 辅助DCDC使能
+	uint8_t  auxDCDCOutputOK;// 辅助DCDC输出正常
+	float    humidity;// 湿度
+	uint8_t  hiLoadEnabled;// 高电流负载使能
+	uint8_t  hiLoadPreChargeEnabled;// 高电流负载预充电使能
+	uint8_t  hiLoadPreChargeError;// 高电流负载预充电错误
+	uint8_t	 IOIN1;// IO输入1
+	uint8_t  IOOUT0;// IO输出0
+	uint8_t  FANSpeedDutyDesired;// 风扇转速占空比需求
+	driverSWEMC2305FanStatusTypeDef FANStatus;// 风扇状态
 } modPowerElectricsPackStateTypedef;
 
 void modPowerElectronicsInit(modPowerElectricsPackStateTypedef *packState, modConfigGeneralConfigStructTypedef *generalConfig);
@@ -117,7 +117,7 @@ void modPowerElectronicsCalculateCellStats(void);
 void modPowerElectronicsSubTaskBalaning(void);
 void modPowerElectronicsSubTaskVoltageWatch(void);
 void modPowerElectronicsUpdateSwitches(void);
-void modPowerElectronicsSortCells(driverLTC6803CellsTypedef *cells, uint8_t cellCount);
+void modPowerElectronicsSortCells(driverLTC6811CellsTypedef *cells, uint8_t cellCount);
 void modPowerElectronicsCalcTempStats(void);
 void modPowerElectronicsCalcThrottle(void);
 int32_t modPowerElectronicsMapVariableInt(int32_t inputVariable, int32_t inputLowerLimit, int32_t inputUpperLimit, int32_t outputLowerLimit, int32_t outputUpperLimit);
