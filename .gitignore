@@ -19,3 +19,5 @@ asccprj.scc
 *.PrjPCBStructure
 *.wmf
 Project\ Outputs*
+MDK-ARM/DieBieMS/
+*.uvguix.*

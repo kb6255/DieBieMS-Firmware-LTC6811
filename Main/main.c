@@ -15,7 +15,7 @@
 #include "modHiAmp.h"
 
 // This next define enables / disables the watchdog
-#define AllowDebug
+//#define AllowDebug
 
 IWDG_HandleTypeDef handleIWDG;
 modConfigGeneralConfigStructTypedef *generalConfig;
@@ -30,42 +30,50 @@ void Error_Handler(void);
 int main(void) {			
   HAL_Init();
   SystemClock_Config();
-	modPowerStateInit(P_STAT_SET);																						// Enable power supply to keep operational// ³õÊ¼»¯µçÔ´×´Ì¬»ú
-	mainWatchDogInitAndStart();// ³õÊ¼»¯²¢Æô¶¯¿´ÃÅ¹·
-	// ËùÓÐºóÐøº¯Êý±ØÐëÑÏ¸ñ°´ÕÕ¸ÃË³Ðòµ÷ÓÃ
-	generalConfig            = modConfigInit();																// Tell EEPROM the needed size for ConfigStruct// ³õÊ¼»¯ÅäÖÃ½á¹¹Ìå
-	generalStateOfCharge     = modStateOfChargeInit(&packState,generalConfig);// Tell EEPROM the needed size for StatOfChargeStruct// ³õÊ¼»¯×´Ì¬½á¹¹Ìå
-	driverSWStorageManagerInit();																							// Initializes EEPROM Memory// ³õÊ¼»¯EEPROM´æ´¢¹ÜÀíÆ÷
-	modConfigStoreAndLoadDefaultConfig();																			// Store default config if needed -> load config from EEPROM// ´æ´¢Ä¬ÈÏÅäÖÃ»ò´ÓEEPROM¼ÓÔØÅäÖÃ
-	modStateOfChargeStoreAndLoadDefaultStateOfCharge();												// Determin SoC from cell voltage if needed -> load StateOfCharge from EEPROM// È·¶¨µç³Ø×´Ì¬»ò´ÓEEPROM¼ÓÔØµç³Ø×´Ì¬  
+	modPowerStateInit(P_STAT_SET);																						// Enable power supply to keep operational// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ô´×´Ì¬ï¿½ï¿½
+	mainWatchDogInitAndStart();// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¹ï¿½
+	// ï¿½ï¿½ï¿½Ðºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ï¿½Õ¸ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½
+	generalConfig            = modConfigInit();																// Tell EEPROM the needed size for ConfigStruct// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Ã½á¹¹ï¿½ï¿½
+	generalStateOfCharge     = modStateOfChargeInit(&packState,generalConfig);// Tell EEPROM the needed size for StatOfChargeStruct// ï¿½ï¿½Ê¼ï¿½ï¿½×´Ì¬ï¿½á¹¹ï¿½ï¿½
+	driverSWStorageManagerInit();																							// Initializes EEPROM Memory// ï¿½ï¿½Ê¼ï¿½ï¿½EEPROMï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	modConfigStoreAndLoadDefaultConfig();																			// Store default config if needed -> load config from EEPROM// ï¿½æ´¢Ä¬ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ï¿½EEPROMï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	modStateOfChargeStoreAndLoadDefaultStateOfCharge();												// Determin SoC from cell voltage if needed -> load StateOfCharge from EEPROM// È·ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½EEPROMï¿½ï¿½ï¿½Øµï¿½ï¿½×´Ì¬  
+	// Patch stored config: the old 1.0 A not-used threshold is too high for small
+	// test loads (a 377 ohm resistor draws only ~0.106 A) and caused unexpected
+	// power down. Write EEPROM only once when the old value is still stored.
+	if(generalConfig->notUsedCurrentThreshold > 0.1f) {
+		generalConfig->notUsedCurrentThreshold = 0.05f;
+		generalConfig->notUsedTimeout = 60*60*1000;
+		modConfigStoreConfig();
+	}
 	// Until here
 	
-	modPowerStateSetConfigHandle(generalConfig);                              // Tell the power state what input method is used en power on mode.// ÉèÖÃµçÔ´×´Ì¬»úµÄÊäÈë·½·¨
-	modCommandsInit(&packState,generalConfig);// ³õÊ¼»¯ÃüÁî½á¹¹Ìå
-	modUARTInit();																	  												// Will act on UART message requests// ³õÊ¼»¯UARTÍ¨ÐÅ 
-	modCANInit(&packState,generalConfig);																			// Will act on CAN message requests// ³õÊ¼»¯CANÍ¨ÐÅÈÎÎñ
-	modEffectInit();																													// Controls the effects on LEDs + buzzer// ³õÊ¼»¯Ð§¹û½á¹¹Ìå
-	modEffectChangeState(STAT_LED_DEBUG,STAT_FLASH);													// Set Debug LED to blinking mode// ÉèÖÃµ÷ÊÔLEDÎªÉÁË¸Ä£Ê½ 
-	modPowerElectronicsInit(&packState,generalConfig);												// ½«²âÁ¿ËùÓÐµçÑ¹²¢½«Æä´æÈë packState// ³õÊ¼»¯µçÔ´µç×ÓÈÎÎñ
-	modOperationalStateInit(&packState,generalConfig,generalStateOfCharge);		// Will keep track of and control operational state (eg. normal use / charging / balancing / power down)// ³õÊ¼»¯²Ù×÷×´Ì¬»ú
-	modHiAmpInit(&packState,generalConfig);																		// Initialize the HiAmp shield enviroment if any// ³õÊ¼»¯HiAmp»·¾³  
+	modPowerStateSetConfigHandle(generalConfig);                              // Tell the power state what input method is used en power on mode.// ï¿½ï¿½ï¿½Ãµï¿½Ô´×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë·½ï¿½ï¿½
+	modCommandsInit(&packState,generalConfig);// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½
+	modUARTInit();																	  												// Will act on UART message requests// ï¿½ï¿½Ê¼ï¿½ï¿½UARTÍ¨ï¿½ï¿½ 
+	modCANInit(&packState,generalConfig);																			// Will act on CAN message requests// ï¿½ï¿½Ê¼ï¿½ï¿½CANÍ¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	modEffectInit();																													// Controls the effects on LEDs + buzzer// ï¿½ï¿½Ê¼ï¿½ï¿½Ð§ï¿½ï¿½ï¿½á¹¹ï¿½ï¿½
+	modEffectChangeState(STAT_LED_DEBUG,STAT_FLASH);													// Set Debug LED to blinking mode// ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½LEDÎªï¿½ï¿½Ë¸Ä£Ê½ 
+	modPowerElectronicsInit(&packState,generalConfig);												// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ñ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ packState// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	modOperationalStateInit(&packState,generalConfig,generalStateOfCharge);		// Will keep track of and control operational state (eg. normal use / charging / balancing / power down)// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½
+	modHiAmpInit(&packState,generalConfig);																		// Initialize the HiAmp shield enviroment if any// ï¿½ï¿½Ê¼ï¿½ï¿½HiAmpï¿½ï¿½ï¿½ï¿½  
 	
   while(true) {
-		modEffectTask();  // ¿ØÖÆLEDºÍ·äÃùÆ÷µÄÐ§¹û
-		modPowerStateTask();// ´¦ÀíµçÔ´×´Ì¬
-		modOperationalStateTask();// ´¦Àí²Ù×÷×´Ì¬
-		modUARTTask();// ´¦ÀíUARTÍ¨ÐÅÈÎÎñ
-		modCANTask();// ´¦ÀíCANÍ¨ÐÅÈÎÎñ   
-		modHiAmpTask();// ´¦ÀíHiAmpÈÎÎñ             
-		mainWatchDogReset();// ÖØÖÃ¿´ÃÅ¹· 
+		modEffectTask();  // ï¿½ï¿½ï¿½ï¿½LEDï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½ï¿½
+		modPowerStateTask();// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´×´Ì¬
+		modOperationalStateTask();// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
+		modUARTTask();// ï¿½ï¿½ï¿½ï¿½UARTÍ¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		modCANTask();// ï¿½ï¿½ï¿½ï¿½CANÍ¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½   
+		modHiAmpTask();// ï¿½ï¿½ï¿½ï¿½HiAmpï¿½ï¿½ï¿½ï¿½             
+		mainWatchDogReset();// ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½Å¹ï¿½ 
 		
-		if(modPowerElectronicsTask())																						// ´¦ÀíµçÔ´µç×ÓÈÎÎñ
-			modStateOfChargeProcess();																						// Èç¹ûÓÐÐÂÊý¾Ý£¬´¦ÀíSoC¹À¼Æ
+		if(modPowerElectronicsTask())																						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+			modStateOfChargeProcess();																						// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½ï¿½ï¿½ï¿½ï¿½SoCï¿½ï¿½ï¿½ï¿½
   }
 }
 
 /* System Clock Configuration */
-void SystemClock_Config(void) {// ÅäÖÃÏµÍ³Ê±ÖÓ
+void SystemClock_Config(void) {// ï¿½ï¿½ï¿½ï¿½ÏµÍ³Ê±ï¿½ï¿½
   RCC_OscInitTypeDef RCC_OscInitStruct;
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
@@ -109,7 +117,7 @@ void SystemClock_Config(void) {// ÅäÖÃÏµÍ³Ê±ÖÓ
 }
 
 /* IWDG init function */
-void mainWatchDogInitAndStart(void) {// ³õÊ¼»¯²¢Æô¶¯¿´ÃÅ¹·
+void mainWatchDogInitAndStart(void) {// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¹ï¿½
 #ifndef AllowDebug  
   handleIWDG.Instance = IWDG;
   handleIWDG.Init.Prescaler = IWDG_PRESCALER_256;
@@ -125,7 +133,7 @@ void mainWatchDogInitAndStart(void) {// ³õÊ¼»¯²¢Æô¶¯¿´ÃÅ¹·
 #endif
 }
 
-void mainWatchDogReset(void) {// ÖØÖÃ¿´ÃÅ¹·
+void mainWatchDogReset(void) {// ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½Å¹ï¿½
 #ifndef AllowDebug
 	HAL_IWDG_Refresh(&handleIWDG);
 #endif
@@ -136,7 +144,7 @@ void mainWatchDogReset(void) {// ÖØÖÃ¿´ÃÅ¹·
   * @param  None
   * @retval None
   */
-void Error_Handler(void){// ´íÎó´¦Àíº¯Êý
+void Error_Handler(void){// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
   /* USER CODE BEGIN Error_Handler */
   /* User can add his own implementation to report the HAL error return state */
   while(1) 
@@ -145,7 +153,7 @@ void Error_Handler(void){// ´íÎó´¦Àíº¯Êý
   /* USER CODE END Error_Handler */ 
 }
 
-#ifdef USE_FULL_ASSERT// ¿ªÆô¶ÏÑÔ¼ì²é
+#ifdef USE_FULL_ASSERT// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½ï¿½
 
 /**
    * @brief Reports the name of the source file and the source line number

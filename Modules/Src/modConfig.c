@@ -75,7 +75,7 @@ void modConfigLoadDefaultConfig(modConfigGeneralConfigStructTypedef *configLocat
 	configLocation->displayTimeoutBatteryErrorPreCharge				     = 10000;										// Show pre charge error for XX seconds.
 	configLocation->displayTimeoutSplashScreen								     = 1000;										// Display / INIT splash screen time.
 	configLocation->maxUnderAndOverVoltageErrorCount 					     = 5;												// Max count of hard cell voltage errors.
-	configLocation->notUsedCurrentThreshold										     = 1.0f;										// If abs(packcurrent) < X.XA consider pack as not used.
+	configLocation->notUsedCurrentThreshold										     = 0.05f;										// If abs(packcurrent) < X.XA consider pack as not used.
 	configLocation->notUsedTimeout														     = 60*60*1000;							// If pack is not used for longer than XX minutes disable bms.
 	configLocation->stateOfChargeStoreInterval								     = 60*1000;									// Interval in ms to store state of charge information.
 	configLocation->CANID																			     = 10;											// CAN ID for CAN communication.
@@ -151,7 +151,7 @@ void modConfigLoadDefaultConfig(modConfigGeneralConfigStructTypedef *configLocat
 	configLocation->displayTimeoutBatteryErrorPreCharge				     = 10000;										// Show pre charge error for XX seconds.
 	configLocation->displayTimeoutSplashScreen								     = 1000;										// Display / INIT splash screen time.
 	configLocation->maxUnderAndOverVoltageErrorCount 					     = 5;												// Max count of hard cell voltage errors.
-	configLocation->notUsedCurrentThreshold										     = 1.0f;										// If abs(packcurrent) < X.XA consider pack as not used.
+	configLocation->notUsedCurrentThreshold										     = 0.05f;										// If abs(packcurrent) < X.XA consider pack as not used.
 	configLocation->notUsedTimeout														     = 60*60*1000;							// If pack is not used for longer than XX minutes disable bms.
 	configLocation->stateOfChargeStoreInterval								     = 60*1000;									// Interval in ms to store state of charge information.
 	configLocation->CANID																			     = 10;											// CAN ID for CAN communication.
@@ -227,7 +227,7 @@ void modConfigLoadDefaultConfig(modConfigGeneralConfigStructTypedef *configLocat
 	configLocation->displayTimeoutBatteryErrorPreCharge				     = 10000;										// Show pre charge error for XX seconds.
 	configLocation->displayTimeoutSplashScreen								     = 1000;										// Display / INIT splash screen time.
 	configLocation->maxUnderAndOverVoltageErrorCount 					     = 5;												// Max count of hard cell voltage errors.
-	configLocation->notUsedCurrentThreshold										     = 1.0f;										// If abs(packcurrent) < X.XA consider pack as not used.
+	configLocation->notUsedCurrentThreshold										     = 0.05f;										// If abs(packcurrent) < X.XA consider pack as not used.
 	configLocation->notUsedTimeout														     = 20*60*1000;							// If pack is not used for longer than XX minutes disable bms.
 	configLocation->stateOfChargeStoreInterval								     = 60*1000;									// Interval in ms to store state of charge information.
 	configLocation->CANID																			     = 10;											// CAN ID for CAN communication.

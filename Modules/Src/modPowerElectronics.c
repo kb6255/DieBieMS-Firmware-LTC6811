@@ -1,4 +1,4 @@
-ï»¿#include "modPowerElectronics.h"
+#include "modPowerElectronics.h"
 
 modPowerElectricsPackStateTypedef *modPowerElectronicsPackStateHandle;
 modConfigGeneralConfigStructTypedef *modPowerElectronicsGeneralConfigHandle;
@@ -19,87 +19,88 @@ uint16_t tempTemperature;
 float    modPowerElectronicsTempPackVoltage;
 uint8_t  modPowerElectronicsISLErrorCount;
 
+// µçÁ¦µç×Ó¿ØÖÆÄ£¿é³õÊ¼»¯:±£´æÅäÖÃ/×´Ì¬¾ä±ú,ÖØÖÃ´íÎó¼ÆÊı²¢³õÊ¼»¯µç³Ø×éËùÓĞ×´Ì¬±äÁ¿¼°Ó²¼şÍâÉè
 void modPowerElectronicsInit(modPowerElectricsPackStateTypedef *packState, modConfigGeneralConfigStructTypedef *generalConfigPointer) {
-	modPowerElectronicsGeneralConfigHandle = generalConfigPointer;
-	modPowerElectronicsPackStateHandle = packState;
-	modPowerElectronicsUnderAndOverVoltageErrorCount = 0;
-	modPowerElectronicsAllowForcedOnState = false;
-	modPowerElectronicsISLErrorCount = 0;
+	modPowerElectronicsGeneralConfigHandle = generalConfigPointer;// ±£´æÍ¨ÓÃÅäÖÃÖ¸Õë,¹©Ä£¿éÄÚ²¿·ÃÎÊ
+	modPowerElectronicsPackStateHandle = packState;// ±£´æµç³Ø×é×´Ì¬Ö¸Õë,¹©Ä£¿éÄÚ²¿·ÃÎÊ
+	modPowerElectronicsUnderAndOverVoltageErrorCount = 0;// Çå³ı¹ıÑ¹/Ç·Ñ¹´íÎó¼ÆÊı
+	modPowerElectronicsAllowForcedOnState = false;// ½ûÖ¹Ç¿ÖÆ¿ªÆô×´Ì¬
+	modPowerElectronicsISLErrorCount = 0;// Çå³ıISL²âÁ¿´íÎó¼ÆÊı
 	
 	// Init pack status
-	modPowerElectronicsPackStateHandle->throttleDutyCharge       = 0;// åˆå§‹åŒ–å……ç”µæ²¹é—¨å ç©ºæ¯”
-	modPowerElectronicsPackStateHandle->throttleDutyDischarge    = 0;// åˆå§‹åŒ–æ”¾ç”µæ²¹é—¨å ç©ºæ¯”
-	modPowerElectronicsPackStateHandle->SoC                      = 0.0f;// åˆå§‹åŒ–SoCä¸º0
-	modPowerElectronicsPackStateHandle->SoCCapacityAh            = 0.0f;// åˆå§‹åŒ–SoCå®¹é‡Ahä¸º0
-	modPowerElectronicsPackStateHandle->operationalState         = OP_STATE_INIT;// åˆå§‹åŒ–æ“ä½œçŠ¶æ€ä¸ºåˆå§‹çŠ¶æ€
-	modPowerElectronicsPackStateHandle->packVoltage              = 0.0f;
-	modPowerElectronicsPackStateHandle->packCurrent              = 0.0f;
-	modPowerElectronicsPackStateHandle->packPower                = 0.0f;
-	modPowerElectronicsPackStateHandle->loCurrentLoadCurrent     = 0.0f;// åˆå§‹åŒ–ä½ç”µæµè´Ÿè½½ç”µæµä¸º0
-	modPowerElectronicsPackStateHandle->loCurrentLoadVoltage     = 0.0f;// åˆå§‹åŒ–ä½ç”µæµè´Ÿè½½ç”µå‹ä¸º0
-	modPowerElectronicsPackStateHandle->cellVoltageHigh          = 0.0f;// åˆå§‹åŒ–ç”µæ± ç”µå‹é«˜ä¸º0
-	modPowerElectronicsPackStateHandle->cellVoltageLow           = 0.0f;// åˆå§‹åŒ–ç”µæ± ç”µå‹ä½ä¸º0
-	modPowerElectronicsPackStateHandle->cellVoltageAverage       = 0.0;// åˆå§‹åŒ–ç”µæ± ç”µå‹å¹³å‡ä¸º0
-	modPowerElectronicsPackStateHandle->disChargeDesired         = false;// åˆå§‹åŒ–æ”¾ç”µéœ€æ±‚ä¸ºfalse
-	modPowerElectronicsPackStateHandle->disChargeLCAllowed       = true;// åˆå§‹åŒ–æ”¾ç”µLCå…è®¸ä¸ºtrue
-	modPowerElectronicsPackStateHandle->disChargeHCAllowed       = true;// åˆå§‹åŒ–æ”¾ç”µHCå…è®¸ä¸ºtrue
-	modPowerElectronicsPackStateHandle->preChargeDesired         = false;// åˆå§‹åŒ–é¢„å……ç”µéœ€æ±‚ä¸ºfalse
-	modPowerElectronicsPackStateHandle->chargeDesired            = false;// åˆå§‹åŒ–å……ç”µéœ€æ±‚ä¸ºfalse
-	modPowerElectronicsPackStateHandle->chargeAllowed 					 = true;// åˆå§‹åŒ–å……ç”µå…è®¸ä¸ºtrue
-	modPowerElectronicsPackStateHandle->safetyOverCANHCSafeNSafe = false;// åˆå§‹åŒ–CAN HCå®‰å…¨Nå®‰å…¨ä¸ºfalse
-	modPowerElectronicsPackStateHandle->chargeBalanceActive      = false;// åˆå§‹åŒ–å……ç”µå‡è¡¡æ¿€æ´»ä¸ºfalse
-	modPowerElectronicsPackStateHandle->chargeCurrentDetected    = false;// åˆå§‹åŒ–å……ç”µç”µæµæ£€æµ‹ä¸ºfalse
-	modPowerElectronicsPackStateHandle->powerButtonActuated      = false;// åˆå§‹åŒ–ç”µæºæŒ‰é’®æ“ä½œä¸ºfalse
-	modPowerElectronicsPackStateHandle->packInSOA                = true;// åˆå§‹åŒ–ç”µæ± åœ¨SOAå†…ä¸ºtrue
-	modPowerElectronicsPackStateHandle->watchDogTime             = 255;// åˆå§‹åŒ–çœ‹é—¨ç‹—æ—¶é—´ä¸º255
-	modPowerElectronicsPackStateHandle->packOperationalCellState = PACK_STATE_NORMAL;// åˆå§‹åŒ–ç”µæ± æ“ä½œçŠ¶æ€ä¸ºæ­£å¸¸
-	modPowerElectronicsPackStateHandle->temperatures[0]          = 200.0f;// åˆå§‹åŒ–æ¸©åº¦0ä¸º200
-	modPowerElectronicsPackStateHandle->temperatures[1]          = 200.0f;// åˆå§‹åŒ–æ¸©åº¦1ä¸º200
-	modPowerElectronicsPackStateHandle->temperatures[2]          = 200.0f;// åˆå§‹åŒ–æ¸©åº¦2ä¸º200
-	modPowerElectronicsPackStateHandle->temperatures[3]          = 200.0f;// åˆå§‹åŒ–æ¸©åº¦3ä¸º200
-	modPowerElectronicsPackStateHandle->tempBatteryHigh          = 0.0f;// åˆå§‹åŒ–ç”µæ± æ¸©åº¦é«˜ä¸º0
-	modPowerElectronicsPackStateHandle->tempBatteryLow           = 0.0f;// åˆå§‹åŒ–ç”µæ± æ¸©åº¦ä½ä¸º0
-	modPowerElectronicsPackStateHandle->tempBatteryAverage       = 0.0f;// åˆå§‹åŒ–ç”µæ± æ¸©åº¦å¹³å‡ä¸º0
-	modPowerElectronicsPackStateHandle->tempBMSHigh              = 0.0f;// åˆå§‹åŒ–BMSæ¸©åº¦é«˜ä¸º0
-	modPowerElectronicsPackStateHandle->tempBMSLow               = 0.0f;// åˆå§‹åŒ–BMSæ¸©åº¦ä½ä¸º0
-	modPowerElectronicsPackStateHandle->tempBMSAverage           = 0.0f;// åˆå§‹åŒ–BMSæ¸©åº¦å¹³å‡ä¸º0
+	modPowerElectronicsPackStateHandle->throttleDutyCharge       = 0;// ³õÊ¼»¯³äµçÓÍÃÅÕ¼¿Õ±È
+	modPowerElectronicsPackStateHandle->throttleDutyDischarge    = 0;// ³õÊ¼»¯·ÅµçÓÍÃÅÕ¼¿Õ±È
+	modPowerElectronicsPackStateHandle->SoC                      = 0.0f;// ³õÊ¼»¯SoCÎª0
+	modPowerElectronicsPackStateHandle->SoCCapacityAh            = 0.0f;// ³õÊ¼»¯SoCÈİÁ¿AhÎª0
+	modPowerElectronicsPackStateHandle->operationalState         = OP_STATE_INIT;// ³õÊ¼»¯²Ù×÷×´Ì¬Îª³õÊ¼×´Ì¬
+	modPowerElectronicsPackStateHandle->packVoltage              = 0.0f;// ³õÊ¼»¯µç³Ø×éµçÑ¹Îª0
+	modPowerElectronicsPackStateHandle->packCurrent              = 0.0f;// ³õÊ¼»¯µç³Ø×éµçÁ÷Îª0
+	modPowerElectronicsPackStateHandle->packPower                = 0.0f;// ³õÊ¼»¯µç³Ø×é¹¦ÂÊÎª0
+	modPowerElectronicsPackStateHandle->loCurrentLoadCurrent     = 0.0f;// ³õÊ¼»¯µÍµçÁ÷¸ºÔØµçÁ÷Îª0
+	modPowerElectronicsPackStateHandle->loCurrentLoadVoltage     = 0.0f;// ³õÊ¼»¯µÍµçÁ÷¸ºÔØµçÑ¹Îª0
+	modPowerElectronicsPackStateHandle->cellVoltageHigh          = 0.0f;// ³õÊ¼»¯µç³ØµçÑ¹¸ßÎª0
+	modPowerElectronicsPackStateHandle->cellVoltageLow           = 0.0f;// ³õÊ¼»¯µç³ØµçÑ¹µÍÎª0
+	modPowerElectronicsPackStateHandle->cellVoltageAverage       = 0.0;// ³õÊ¼»¯µç³ØµçÑ¹Æ½¾ùÎª0
+	modPowerElectronicsPackStateHandle->disChargeDesired         = false;// ³õÊ¼»¯·ÅµçĞèÇóÎªfalse
+	modPowerElectronicsPackStateHandle->disChargeLCAllowed       = true;// ³õÊ¼»¯·ÅµçLCÔÊĞíÎªtrue
+	modPowerElectronicsPackStateHandle->disChargeHCAllowed       = true;// ³õÊ¼»¯·ÅµçHCÔÊĞíÎªtrue
+	modPowerElectronicsPackStateHandle->preChargeDesired         = false;// ³õÊ¼»¯Ô¤³äµçĞèÇóÎªfalse
+	modPowerElectronicsPackStateHandle->chargeDesired            = false;// ³õÊ¼»¯³äµçĞèÇóÎªfalse
+	modPowerElectronicsPackStateHandle->chargeAllowed 					 = true;// ³õÊ¼»¯³äµçÔÊĞíÎªtrue
+	modPowerElectronicsPackStateHandle->safetyOverCANHCSafeNSafe = false;// ³õÊ¼»¯CAN HC°²È«N°²È«Îªfalse
+	modPowerElectronicsPackStateHandle->chargeBalanceActive      = false;// ³õÊ¼»¯³äµç¾ùºâ¼¤»îÎªfalse
+	modPowerElectronicsPackStateHandle->chargeCurrentDetected    = false;// ³õÊ¼»¯³äµçµçÁ÷¼ì²âÎªfalse
+	modPowerElectronicsPackStateHandle->powerButtonActuated      = false;// ³õÊ¼»¯µçÔ´°´Å¥²Ù×÷Îªfalse
+	modPowerElectronicsPackStateHandle->packInSOA                = true;// ³õÊ¼»¯µç³ØÔÚSOAÄÚÎªtrue
+	modPowerElectronicsPackStateHandle->watchDogTime             = 255;// ³õÊ¼»¯¿´ÃÅ¹·Ê±¼äÎª255
+	modPowerElectronicsPackStateHandle->packOperationalCellState = PACK_STATE_NORMAL;// ³õÊ¼»¯µç³Ø²Ù×÷×´Ì¬ÎªÕı³£
+	modPowerElectronicsPackStateHandle->temperatures[0]          = 200.0f;// ³õÊ¼»¯ÎÂ¶È0Îª200
+	modPowerElectronicsPackStateHandle->temperatures[1]          = 200.0f;// ³õÊ¼»¯ÎÂ¶È1Îª200
+	modPowerElectronicsPackStateHandle->temperatures[2]          = 200.0f;// ³õÊ¼»¯ÎÂ¶È2Îª200
+	modPowerElectronicsPackStateHandle->temperatures[3]          = 200.0f;// ³õÊ¼»¯ÎÂ¶È3Îª200
+	modPowerElectronicsPackStateHandle->tempBatteryHigh          = 0.0f;// ³õÊ¼»¯µç³ØÎÂ¶È¸ßÎª0
+	modPowerElectronicsPackStateHandle->tempBatteryLow           = 0.0f;// ³õÊ¼»¯µç³ØÎÂ¶ÈµÍÎª0
+	modPowerElectronicsPackStateHandle->tempBatteryAverage       = 0.0f;// ³õÊ¼»¯µç³ØÎÂ¶ÈÆ½¾ùÎª0
+	modPowerElectronicsPackStateHandle->tempBMSHigh              = 0.0f;// ³õÊ¼»¯BMSÎÂ¶È¸ßÎª0
+	modPowerElectronicsPackStateHandle->tempBMSLow               = 0.0f;// ³õÊ¼»¯BMSÎÂ¶ÈµÍÎª0
+	modPowerElectronicsPackStateHandle->tempBMSAverage           = 0.0f;// ³õÊ¼»¯BMSÎÂ¶ÈÆ½¾ùÎª0
 	
-  modPowerElectronicsInitISL();// åˆå§‹åŒ–ISL28022
+  modPowerElectronicsInitISL();// ³õÊ¼»¯ISL28022
 	
 	// Init internal ADC
-	driverHWADCInit();// åˆå§‹åŒ–å†…éƒ¨ADC
-	driverHWSwitchesInit();// åˆå§‹åŒ–ç¡¬ä»¶å¼€å…³
-	driverHWSwitchesSetSwitchState(SWITCH_DRIVER,SWITCH_SET);// ä½¿èƒ½FETé©±åŠ¨å™¨
+	driverHWADCInit();// ³õÊ¼»¯ÄÚ²¿ADC
+	driverHWSwitchesInit();// ³õÊ¼»¯Ó²¼ş¿ª¹Ø
+	driverHWSwitchesSetSwitchState(SWITCH_DRIVER,SWITCH_SET);// Ê¹ÄÜFETÇı¶¯Æ÷
 	
 	// Init battery stack monitor
-	driverLTC6811ConfigStructTypedef configStruct;// LTC6811é…ç½®ç»“æ„ä½“
-	configStruct.ADCOPT = 0;// ADCé€‰é¡¹
-	configStruct.REFON = 1;// ä½¿èƒ½å‚è€ƒç”µå‹
+	driverLTC6811ConfigStructTypedef configStruct;// LTC6811ÅäÖÃ½á¹¹Ìå
+	configStruct.ADCOPT = 0;// ADCÑ¡Ïî
+	configStruct.REFON = 1;// Ê¹ÄÜ²Î¿¼µçÑ¹
 	configStruct.GPIO[0] = false;// GPIO0
 	configStruct.GPIO[1] = false;// GPIO1
 	configStruct.GPIO[2] = true;// GPIO2
 	configStruct.GPIO[3] = false;// GPIO3
 	configStruct.GPIO[4] = false;// GPIO4
-	configStruct.CDCMode = 2;// CDCæ¨¡å¼
-	configStruct.DisChargeEnableMask = 0x0000;// æ”¾ç”µä½¿èƒ½æ©ç 
-	configStruct.noOfCells = modPowerElectronicsGeneralConfigHandle->noOfCells;// ç”µæ± æ•°é‡
-	configStruct.CellUnderVoltageLimit = modPowerElectronicsGeneralConfigHandle->cellHardUnderVoltage;// ç”µæ± ç”µå‹ä¸‹é™
-	configStruct.CellOverVoltageLimit = modPowerElectronicsGeneralConfigHandle->cellHardOverVoltage;// ç”µæ± ç”µå‹ä¸Šé™
+	configStruct.CDCMode = 2;// CDCÄ£Ê½
+	configStruct.DisChargeEnableMask = 0x0000;// ·ÅµçÊ¹ÄÜÑÚÂë
+	configStruct.noOfCells = modPowerElectronicsGeneralConfigHandle->noOfCells;// µç³ØÊıÁ¿
+	configStruct.CellUnderVoltageLimit = modPowerElectronicsGeneralConfigHandle->cellHardUnderVoltage;// µç³ØµçÑ¹ÏÂÏŞ
+	configStruct.CellOverVoltageLimit = modPowerElectronicsGeneralConfigHandle->cellHardOverVoltage;// µç³ØµçÑ¹ÉÏÏŞ
 
-	driverSWLTC6811Init(configStruct, TotalLTCICs);// åˆå§‹åŒ–LTC6811
+	driverSWLTC6811Init(configStruct, TotalLTCICs);// ³õÊ¼»¯LTC6811
 	
-	modPowerElectronicsChargeCurrentDetectionLastTick = HAL_GetTick();// åˆå§‹åŒ–å……ç”µç”µæµæ£€æµ‹æ—¶é—´
-	modPowerElectronicsBalanceModeActiveLastTick = HAL_GetTick();// åˆå§‹åŒ–å‡è¡¡æ¨¡å¼æ¿€æ´»æ—¶é—´
+	modPowerElectronicsChargeCurrentDetectionLastTick = HAL_GetTick();// ³õÊ¼»¯³äµçµçÁ÷¼ì²âÊ±¼ä
+	modPowerElectronicsBalanceModeActiveLastTick = HAL_GetTick();// ³õÊ¼»¯¾ùºâÄ£Ê½¼¤»îÊ±¼ä
 };
-// ç”µåŠ›ç”µå­ä»»åŠ¡
+// µçÁ¦µç×ÓÈÎÎñ
 bool modPowerElectronicsTask(void) {
 	bool returnValue = false;
 	
-	if(modDelayTick1ms(&modPowerElectronicsMeasureIntervalLastTick,100)) {// æ¯100æ¯«ç§’æ‰§è¡Œä¸€æ¬¡æµ‹é‡
-		// é‡ç½® LTC æ¸©åº¦å¯åŠ¨è½¬æ¢å»¶æ—¶çš„è®¡æ—¶
+	if(modDelayTick1ms(&modPowerElectronicsMeasureIntervalLastTick,100)) {// Ã¿100ºÁÃëÖ´ĞĞÒ»´Î²âÁ¿
+		// ÖØÖÃ LTC ÎÂ¶ÈÆô¶¯×ª»»ÑÓÊ±µÄ¼ÆÊ±
 		modPowerElectronicsTempMeasureDelayLastTick = HAL_GetTick();
 		
-		//é‡‡é›†å°ç”µæµé€šè·¯æ•°æ®å¹¶æ ¡éªŒæœ‰æ•ˆæ€§ï¼Œè‹¥æ•°æ®æ— æ•ˆåˆ™æ‰§è¡Œæ¢å¤æ“ä½œã€‚
+		//²É¼¯Ğ¡µçÁ÷Í¨Â·Êı¾İ²¢Ğ£ÑéÓĞĞ§ĞÔ£¬ÈôÊı¾İÎŞĞ§ÔòÖ´ĞĞ»Ö¸´²Ù×÷¡£
 		driverSWISL28022GetBusVoltage(ISL28022_MASTER_ADDRES,ISL28022_MASTER_BUS,&modPowerElectronicsTempPackVoltage,0.004f);
 		if(fabs(modPowerElectronicsTempPackVoltage - modPowerElectronicsGeneralConfigHandle->noOfCells*modPowerElectronicsPackStateHandle->cellVoltageAverage) < 1.0f) {    // If the error is smaller than one volt continue normal operation. 
 			modPowerElectronicsPackStateHandle->packVoltage = modPowerElectronicsTempPackVoltage;
@@ -120,17 +121,18 @@ bool modPowerElectronicsTask(void) {
 		modPowerElectronicsPackStateHandle->packPower   = modPowerElectronicsPackStateHandle->packCurrent * modPowerElectronicsPackStateHandle->packVoltage;
 		
 		// Check if LTC is still running
-		driverSWLTC6811ReadConfig(&modPowerElectronicsLTCconfigStruct);// è¯»å–LTC6811é…ç½®å¯„å­˜å™¨å€¼
-		if(!modPowerElectronicsLTCconfigStruct.CDCMode)// æ£€æŸ¥LTC6811æ˜¯å¦ä»åœ¨è¿è¡Œ
-			driverSWLTC6811ReInit();// é‡æ–°åˆå§‹åŒ–LTC6811
+		driverSWLTC6811WakeUp(TotalLTCICs);// Ã¿´Î²âÁ¿Ç°»½ĞÑLTC6811,·ÀÖ¹Ğ¾Æ¬½øÈëĞİÃßµ¼ÖÂÃüÁî±»ºöÂÔ
+		driverSWLTC6811ReadConfig(&modPowerElectronicsLTCconfigStruct);// ¶ÁÈ¡LTC6811ÅäÖÃ¼Ä´æÆ÷Öµ
+		if(!modPowerElectronicsLTCconfigStruct.CDCMode)// ¼ì²éLTC6811ÊÇ·ñÈÔÔÚÔËĞĞ
+			driverSWLTC6811ReInit();// ÖØĞÂ³õÊ¼»¯LTC6811
 		else
-			driverSWLTC6811ReadCellVoltages(modPowerElectronicsPackStateHandle->cellVoltagesIndividual);// è¯»å–LTC6811ç”µæ± ç”µå‹
+			driverSWLTC6811ReadCellVoltages(modPowerElectronicsPackStateHandle->cellVoltagesIndividual);// ¶ÁÈ¡LTC6811µç³ØµçÑ¹
 		
-		//æ£€æŸ¥ LTC åœ¨éå……ç”µçŠ¶æ€ä¸‹æ˜¯å¦å¯ç”¨æ”¾ç”µç”µé˜»
+		//¼ì²é LTC ÔÚ·Ç³äµç×´Ì¬ÏÂÊÇ·ñÆôÓÃ·Åµçµç×è
 		if(!modPowerElectronicsPackStateHandle->chargeDesired && modPowerElectronicsLTCconfigStruct.DisChargeEnableMask)
 			driverSWLTC6811ReInit();																														// Something went wrong, reinit the battery stack monitor.
 		
-		// é‡‡é›† LTC æ¸©åº¦æ•°æ®
+		// ²É¼¯ LTC ÎÂ¶ÈÊı¾İ
 		driverSWLTC6811ReadTempVoltages(modPowerElectronicsTemperatureArray);
 		modPowerElectronicsPackStateHandle->temperatures[0] = driverSWLTC6811ConvertTemperatureExt(modPowerElectronicsTemperatureArray[0],modPowerElectronicsGeneralConfigHandle->NTC25DegResistance[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCTopResistor[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCBetaFactor[modConfigNTCGroupLTCExt],25.0f);
 		modPowerElectronicsPackStateHandle->temperatures[1] = driverSWLTC6811ConvertTemperatureExt(modPowerElectronicsTemperatureArray[1],modPowerElectronicsGeneralConfigHandle->NTC25DegResistance[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCTopResistor[modConfigNTCGroupLTCExt],modPowerElectronicsGeneralConfigHandle->NTCBetaFactor[modConfigNTCGroupLTCExt],25.0f);
@@ -182,8 +184,8 @@ bool modPowerElectronicsTask(void) {
 	}else
 		returnValue = false;
 	
-	if(modDelayTick1msNoRST(&modPowerElectronicsTempMeasureDelayLastTick,50))// æ¯50æ¯«ç§’å¯åŠ¨ä¸€æ¬¡æ¸©åº¦ç”µå‹è½¬æ¢
-		driverSWLTC6811StartTemperatureVoltageConversion();// å¯åŠ¨æ¸©åº¦ç”µå‹è½¬æ¢
+	if(modDelayTick1msNoRST(&modPowerElectronicsTempMeasureDelayLastTick,50))// Ã¿50ºÁÃëÆô¶¯Ò»´ÎÎÂ¶ÈµçÑ¹×ª»»
+		driverSWLTC6811StartTemperatureVoltageConversion();// Æô¶¯ÎÂ¶ÈµçÑ¹×ª»»
 	
 	return returnValue;
 };
@@ -298,7 +300,7 @@ void modPowerElectronicsSubTaskBalaning(void) {
 		modPowerElectronicsPackStateHandle->cellBalanceResistorEnableMask = cellBalanceMaskEnableRegister;
 		
 		if(lastCellBalanceRegister != cellBalanceMaskEnableRegister)
-			driverSWLTC6811EnableBalanceResistors(cellBalanceMaskEnableRegister);// ä½¿èƒ½ç”µæ± å‡è¡¡ç”µé˜»
+			driverSWLTC6811EnableBalanceResistors(cellBalanceMaskEnableRegister);// Ê¹ÄÜµç³Ø¾ùºâµç×è
 		lastCellBalanceRegister = cellBalanceMaskEnableRegister;
 	}
 };
@@ -308,7 +310,7 @@ void modPowerElectronicsSubTaskVoltageWatch(void) {
 	static bool lastChargeAllowed = false;
 	uint16_t hardUnderVoltageFlags, hardOverVoltageFlags;
 	
-	driverSWLTC6811ReadVoltageFlags(&hardUnderVoltageFlags,&hardOverVoltageFlags);// è¯»å–ç”µæ± ç”µå‹æ ‡å¿—
+	driverSWLTC6811ReadVoltageFlags(&hardUnderVoltageFlags,&hardOverVoltageFlags);// ¶ÁÈ¡µç³ØµçÑ¹±êÖ¾
 	modPowerElectronicsCalculateCellStats();
 	
 	if(modPowerElectronicsPackStateHandle->packOperationalCellState != PACK_STATE_ERROR_HARD_CELLVOLTAGE) {
@@ -551,11 +553,11 @@ float modPowerElectronicsMapVariableFloat(float inputVariable, float inputLowerL
 
 void modPowerElectronicsInitISL(void) {
 	// Init BUS monitor
-	driverSWISL28022InitStruct ISLInitStruct;// ISL28022åˆå§‹åŒ–ç»“æ„ä½“
-	ISLInitStruct.ADCSetting = ADC_128_64010US;// ADCè®¾ç½®
-	ISLInitStruct.busVoltageRange = BRNG_60V_1;// ç”µå‹ç”µå‹èŒƒå›´
-	ISLInitStruct.currentShuntGain = PGA_4_160MV;// ç”µæµåˆ†æµå¢ç›Š
-	ISLInitStruct.Mode = MODE_SHUNTANDBUS_CONTINIOUS;// æ¨¡å¼
+	driverSWISL28022InitStruct ISLInitStruct;// ISL28022³õÊ¼»¯½á¹¹Ìå
+	ISLInitStruct.ADCSetting = ADC_128_64010US;// ADCÉèÖÃ
+	ISLInitStruct.busVoltageRange = BRNG_60V_1;// µçÑ¹µçÑ¹·¶Î§
+	ISLInitStruct.currentShuntGain = PGA_4_160MV;// µçÁ÷·ÖÁ÷ÔöÒæ
+	ISLInitStruct.Mode = MODE_SHUNTANDBUS_CONTINIOUS;// Ä£Ê½
 	driverSWISL28022Init(ISL28022_MASTER_ADDRES,ISL28022_MASTER_BUS,ISLInitStruct);
 }
 

@@ -15,7 +15,7 @@
 #define NoOfCellsPossibleOnChip	12
 #define NoOfTempSensors         13
 #define PRECHARGE_PERCENTAGE 		0.75f
-#define TotalLTCICs							1
+#define TotalLTCICs							1  //×ÜLTC ICÊýÁ¿
 #define ISLErrorThreshold       10
 
 typedef enum {
@@ -127,3 +127,6 @@ bool modPowerElectronicsHCSafetyCANAndPowerButtonCheck(void);
 void modPowerElectronicsResetBalanceModeActiveTimeout(void);
 
 #endif
+
+
+
