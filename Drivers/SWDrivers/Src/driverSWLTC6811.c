@@ -29,6 +29,8 @@ static const uint16_t crc15Table[256]= {
 
 uint8_t driverSWLTC6811TotalNumerOfICs = 0;
 driverLTC6811ConfigStructTypedef driverSWLTC6811ConfigStruct;
+static driverLTC6811CellsTypedef driverSWLTC6811LastCells[12];
+static bool driverSWLTC6811HaveCellData = false;
 
 uint16_t pec15_calc(uint8_t len, uint8_t *data) {
     uint16_t remainder, addr;
@@ -40,10 +42,11 @@ uint16_t pec15_calc(uint8_t len, uint8_t *data) {
     return remainder * 2;
 }
 
+//唤醒所有LTC6811
 void driverSWLTC6811WakeUp(uint8_t total_ic) {
-    uint8_t dummy = 0xFF;
+    uint8_t dummy[8] = {0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
     for (uint8_t i = 0; i < total_ic; i++) {
-        driverHWSPI1Write(&dummy, 1, LTC_CS_GPIO_Port, LTC_CS_Pin);
+        driverHWSPI1Write(dummy, 8, LTC_CS_GPIO_Port, LTC_CS_Pin);
     }
 }
 
@@ -69,10 +72,10 @@ void driverSWLTC6811WriteRead(uint8_t *writeBytes, uint8_t writeLength,
 }
 
 void driverSWLTC6811Init(driverLTC6811ConfigStructTypedef configStruct, uint8_t totalNumberOfLTCs) {
-    driverSWLTC6811TotalNumerOfICs = totalNumberOfLTCs;
+    driverSWLTC6811TotalNumerOfICs = totalNumberOfLTCs; // 设置总LTC6811数量        
     driverSWLTC6811ConfigStruct = configStruct;
 
-    driverHWSPI1Init(LTC_CS_GPIO_Port, LTC_CS_Pin);
+    driverHWSPI1Init(LTC_CS_GPIO_Port, LTC_CS_Pin);// 初始化SPI1接口 PA4为CS引脚
 
     driverSWLTC6811WakeUp(driverSWLTC6811TotalNumerOfICs);
 
@@ -89,7 +92,7 @@ void driverSWLTC6811StartCellVoltageConversion(void) {
     md_bits = (driverSWLTC6811ConfigStruct.ADCOPT & 0x02) >> 1;// 获取ADC转换时间配置
     uint8_t cmd0 = md_bits + 0x02;
     md_bits = (driverSWLTC6811ConfigStruct.ADCOPT & 0x01) << 7;// 获取ADC转换模式配置
-    uint8_t cmd1 = md_bits + 0x60 + 0;
+    uint8_t cmd1 = md_bits + 0xE0 + 0;
     driverSWLTC6811SendCmd(cmd0, cmd1);
 }
 
@@ -99,22 +102,22 @@ void driverSWLTC6811StartTemperatureVoltageConversion(void) {
     md_bits = (driverSWLTC6811ConfigStruct.ADCOPT & 0x02) >> 1;// 获取ADC转换时间配置
     uint8_t cmd0 = md_bits + 0x04;
     md_bits = (driverSWLTC6811ConfigStruct.ADCOPT & 0x01) << 7;// 获取ADC转换模式配置
-    uint8_t cmd1 = md_bits + 0x60 + 0;
+    uint8_t cmd1 = md_bits + 0xE0 + 0;
     driverSWLTC6811SendCmd(cmd0, cmd1);
 }
 // 重置LTC6811电池电压寄存器
 void driverSWLTC6811ResetCellVoltageRegisters(void) {
-    driverSWLTC6811SendCmd(0x07, 0x11);// 发送重置电池电压寄存器命令
+    driverSWLTC6811SendCmd(0x07, 0x13);// 发送重置电池电压寄存器命令
 }
 // 读取LTC6811电池电压
 bool driverSWLTC6811ReadCellVoltages(driverLTC6811CellsTypedef cellVoltages[12]) {
     const uint8_t total_ic = driverSWLTC6811TotalNumerOfICs;// 获取LTC6811芯片总数
-    const uint8_t RDCV_CMDs[4] = {0x04, 0x06, 0x08, 0x0A};// 读取电池电压命令
+    const uint8_t RDCV_CMDs[4] = {0x04, 0x06, 0x08, 0x0A};// RDCV命令高字节:RDCVA=0x0406/0x0608/0x080A/0x0A0C
     bool allValid = true;
     uint8_t cell_idx = 0;
     // 共4个电池电压寄存器，每个寄存器包含3个电池电压
     for (uint8_t reg = 0; reg < 4; reg++) {// 读取4个电池电压寄存器
-        uint8_t cmd[4] = {0x00, RDCV_CMDs[reg], 0, 0};
+        uint8_t cmd[4] = {0x00, RDCV_CMDs[reg], 0, 0};// 命令两字节,高字节在前(MSB先行)
         uint16_t cmd_pec = pec15_calc(2, cmd);// 计算命令CRC
         cmd[2] = (uint8_t)(cmd_pec >> 8);
         cmd[3] = (uint8_t)(cmd_pec);
@@ -136,8 +139,8 @@ bool driverSWLTC6811ReadCellVoltages(driverLTC6811CellsTypedef cellVoltages[12])
         codes[2] = rx_buf[4] | ((uint16_t)rx_buf[5] << 8);
 
         for (uint8_t k = 0; k < 3 && cell_idx < 12; k++) {// 处理3个电池电压
-            float v = (float)codes[k] * 0.0015f;// 将原始值转换为电压值
-            if (v > 5.0f) {// 校验电压值是否超过5V
+            float v = (float)codes[k] * 0.0001f;// 将原始值转换为电压值
+            if (v > 5.5f) {// 校验电压值是否超过5V
                 allValid = false;
                 v = 0.0f;
             }
@@ -147,11 +150,13 @@ bool driverSWLTC6811ReadCellVoltages(driverLTC6811CellsTypedef cellVoltages[12])
         }
     }
 
+    for (uint8_t c = 0; c < 12; c++) driverSWLTC6811LastCells[c] = cellVoltages[c];
+    driverSWLTC6811HaveCellData = true;
     return allValid;
 }
 // 读取LTC6811温度电压
 bool driverSWLTC6811ReadTempVoltages(uint16_t tempVoltages[3]) {
-    uint8_t cmd[4] = {0x00, 0x0C, 0, 0};
+    uint8_t cmd[4] = {0x00, 0x0C, 0, 0};// 读取AUX寄存器组A命令RDAUXA=0x0C0E
     uint16_t cmd_pec = pec15_calc(2, cmd);
     cmd[2] = (uint8_t)(cmd_pec >> 8);
     cmd[3] = (uint8_t)(cmd_pec);
@@ -205,12 +210,12 @@ void driverSWLTC6811WriteConfig(driverLTC6811ConfigStructTypedef configStruct) {
     uint8_t cfgra[6];
     uint16_t uvRaw, ovRaw;
 
-    uvRaw = (uint16_t)((configStruct.CellUnderVoltageLimit * 1000.0f) / 16.0f) - 1;
-    ovRaw = (uint16_t)((configStruct.CellOverVoltageLimit * 1000.0f) / 16.0f);
+    uvRaw = (uint16_t)((configStruct.CellUnderVoltageLimit * 10000.0f) / 16.0f) - 1;
+    ovRaw = (uint16_t)((configStruct.CellOverVoltageLimit * 10000.0f) / 16.0f);
 
     cfgra[0] = 0;
     if (configStruct.ADCOPT) cfgra[0] |= 0x01;
-    if (configStruct.REFON)  cfgra[0] |= 0x04;
+    if (configStruct.REFON)  cfgra[0] |= 0x02;
     for (int i = 0; i < 5; i++) {
         if (configStruct.GPIO[i]) cfgra[0] |= (0x01 << (i + 3));
     }
@@ -227,7 +232,10 @@ void driverSWLTC6811WriteConfig(driverLTC6811ConfigStructTypedef configStruct) {
     driverSWLTC6811WriteConfigRegisters(driverSWLTC6811TotalNumerOfICs, configPointer);
 }
 
-bool driverSWLTC6811ReadConfigRegisters(uint8_t total_ic, uint8_t r_config[][8]) {
+bool driverSWLTC6811ReadConfigRegisters(uint8_t total_ic, uint8_t r_config[][8]) {// 读取LTC6811配置寄存器
+    static uint32_t read_cnt = 0;
+    read_cnt++;
+
     const uint8_t BYTES_IN_REG = 8;
     uint8_t cmd[4] = {0x00, 0x02, 0, 0};
     uint16_t cmd_pec = pec15_calc(2, cmd);
@@ -270,10 +278,12 @@ bool driverSWLTC6811ReadConfig(driverLTC6811ConfigStructTypedef *configStruct) {
 
     uint16_t uvRaw = (uint16_t)configPointer[0][1] | ((uint16_t)(configPointer[0][2] & 0xF0) << 4);// 读取电池电压下限原始值
     uint16_t ovRaw = ((uint16_t)(configPointer[0][2] & 0x0F) << 4) | ((uint16_t)configPointer[0][3] << 4);// 读取电池电压上限原始值
-    configStruct->CellUnderVoltageLimit = ((float)(uvRaw + 1) * 16.0f) / 1000.0f;// 读取电池电压下限
-    configStruct->CellOverVoltageLimit  = ((float)ovRaw * 16.0f) / 1000.0f;// 读取电池电压上限
+    configStruct->CellUnderVoltageLimit = ((float)(uvRaw + 1) * 1.6f) / 1000.0f;// 读取电池电压下限
+    configStruct->CellOverVoltageLimit  = ((float)ovRaw * 1.6f) / 1000.0f;// 读取电池电压上限
 
-    configStruct->DisChargeEnableMask  = (uint16_t)configPointer[0][4] | ((uint16_t)configPointer[0][5] << 8);// 读取放电使能掩码   
+    configStruct->DisChargeEnableMask  = (uint16_t)configPointer[0][4] | ((uint16_t)configPointer[0][5] << 8);
+
+    configStruct->CDCMode = returnval ? 1 : 0;// 读取放电使能掩码   
 
     return returnval;
 }
@@ -305,40 +315,17 @@ bool driverSWLTC6811ReadFlagRegisters(uint8_t total_ic, uint8_t flagRegisters[][
 }
 // 读取LTC6811电池电压标志
 bool driverSWLTC6811ReadVoltageFlags(uint16_t *underVoltageFlags, uint16_t *overVoltageFlags) {
-    uint8_t statRegisters[1][8];
-    bool returnVal;
-
+    /* LTC6811 has no per-cell hard flag registers; derive from measured voltages. */
     *underVoltageFlags = 0;
-    *overVoltageFlags = 0;
-
-    returnVal = driverSWLTC6811ReadFlagRegisters(1, statRegisters);// 读取标志寄存器
-
-    uint8_t uv_bits = statRegisters[0][0];// 读取欠压标志位
-    uint8_t ov_bits = statRegisters[0][1];// 读取过压标志位
-
-    for (uint8_t cell = 0; cell < driverSWLTC6811ConfigStruct.noOfCells && cell < 8; cell++) {// 遍历8个电池
-        if (uv_bits & (1 << cell)) {// 检查欠压标志位
-            *underVoltageFlags |= (1 << cell);// 设置欠压标志位
-        }
-        if (ov_bits & (1 << cell)) {// 检查过压标志位
-            *overVoltageFlags |= (1 << cell);// 设置过压标志位
-        }
+    *overVoltageFlags  = 0;
+    if (!driverSWLTC6811HaveCellData) return true;
+    for (uint8_t c = 0; c < driverSWLTC6811ConfigStruct.noOfCells && c < 12; c++) {
+        if (driverSWLTC6811LastCells[c].cellVoltage < driverSWLTC6811ConfigStruct.CellUnderVoltageLimit)
+            *underVoltageFlags |= (1 << c);
+        if (driverSWLTC6811LastCells[c].cellVoltage > driverSWLTC6811ConfigStruct.CellOverVoltageLimit)
+            *overVoltageFlags |= (1 << c);
     }
-
-    if (driverSWLTC6811ConfigStruct.noOfCells > 8) {// 检查电池数量是否大于8个
-        uint8_t uv_bits2 = statRegisters[0][2] & 0x0F;// 读取欠压标志位2
-        uint8_t ov_bits2 = statRegisters[0][3] & 0x0F;// 读取过压标志位2
-        for (uint8_t cell = 0; cell < (driverSWLTC6811ConfigStruct.noOfCells - 8) && cell < 4; cell++) {// 遍历剩余电池
-            if (uv_bits2 & (1 << cell)) {// 检查欠压标志位2
-                *underVoltageFlags |= (1 << (cell + 8));// 设置欠压标志位2
-            }
-            if (ov_bits2 & (1 << cell)) {// 检查过压标志位2
-                *overVoltageFlags |= (1 << (cell + 8));// 设置过压标志位2           
-            }
-        }
-    }
-
-    return returnVal;
+    return true;
 }
 // 使能LTC6811电池均衡电阻
 void driverSWLTC6811EnableBalanceResistors(uint16_t balanceEnableMask) {

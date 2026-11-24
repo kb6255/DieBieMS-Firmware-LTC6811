@@ -16,8 +16,12 @@ void driverSWISL28022Init(uint8_t i2cAddres, uint8_t i2cBus, driverSWISL28022Ini
 bool driverSWISL28022GetBusCurrent(uint8_t i2cAddres, uint8_t i2cBus, float *busCurrent, int16_t offset, float scalar) {
 	// ToDo make register to current conversion register dependent
 	uint8_t writeDataC[1] = {REG_SHUNTVOLTAGE};
-	uint8_t readDataC[2];
-	static int16_t busCurrentInt;
+	uint8_t readDataC[2] = {0,0};
+	static float filteredCurrent[16];
+	static uint8_t filteredInitMask = 0;
+	uint8_t addrIdx = i2cAddres & 0x0F;
+	int16_t busCurrentInt;
+	float newCurrent, diff;
 
 	if(i2cBus == 1){
 		driverHWI2C1Write(i2cAddres,false,writeDataC,1);
@@ -26,10 +30,23 @@ bool driverSWISL28022GetBusCurrent(uint8_t i2cAddres, uint8_t i2cBus, float *bus
 		driverHWI2C2Write(i2cAddres,false,writeDataC,1);
 		driverHWI2C2Read(i2cAddres,readDataC,2);
 	}
-	
+
 	busCurrentInt = (readDataC[0] << 9) | (readDataC[1] << 1);
-	*busCurrent = scalar*(busCurrentInt+offset);
-	
+	newCurrent = scalar*(busCurrentInt+offset);
+
+	if(((filteredInitMask >> addrIdx) & 0x01) == 0){
+		filteredCurrent[addrIdx] = newCurrent;
+		filteredInitMask |= (1 << addrIdx);
+	}else{
+		diff = newCurrent - filteredCurrent[addrIdx];
+		if(diff < 0) diff = -diff;
+		if(diff < 20.0f){
+			filteredCurrent[addrIdx] += 0.15f*(newCurrent - filteredCurrent[addrIdx]);
+		}
+	}
+
+	*busCurrent = filteredCurrent[addrIdx];
+
 	return false;
 };
 

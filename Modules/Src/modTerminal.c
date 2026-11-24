@@ -18,6 +18,7 @@
  */
 
 #include "modTerminal.h"
+#include "driverSWLTC6811.h"
 
 // Private types
 typedef struct _terminal_callback_struct {
@@ -35,6 +36,8 @@ extern modConfigGeneralConfigStructTypedef *generalConfig;
 extern modStateOfChargeStructTypeDef *generalStateOfCharge;
 extern modPowerElectricsPackStateTypedef packState;
 extern OperationalStateTypedef modOperationalStateCurrentState;
+extern uint8_t modPowerElectronicsUnderAndOverVoltageErrorCount;
+extern uint8_t modPowerElectronicsISLErrorCount;
 
 void terminal_process_string(char *str) {
 	enum { kMaxArgs = 64 };
@@ -52,13 +55,103 @@ void terminal_process_string(char *str) {
 		return;
 	}
 
-	if (strcmp(argv[0], "ping") == 0) {
+	if (strcmp(argv[0], "fault") == 0) {
+		uint16_t uvFlags = 0, ovFlags = 0;
+		driverSWLTC6811ReadVoltageFlags(&uvFlags,&ovFlags);
+
+		modCommandsPrintf("-----  Fault / Alarm Status  -----");
+		modCommandsPrintf("FW build  : 2026-11-23 1653 (LC/current low-pass restored)");
+
+		// [1] Latched pack fault state (this is what the GUI 'FaultState' shows)
+		modCommandsPrintf("[1] Pack fault state:");
+		switch(packState.packOperationalCellState) {
+			case PACK_STATE_NORMAL:
+				modCommandsPrintf("    Pack fault          : NORMAL (no fault)");
+				break;
+			case PACK_STATE_ERROR_SOFT_CELLVOLTAGE:
+				modCommandsPrintf("    Pack fault          : SOFT CELL VOLTAGE (discharge/charge limited)");
+				break;
+			case PACK_STATE_ERROR_HARD_CELLVOLTAGE:
+				modCommandsPrintf("    Pack fault          : HARD CELL VOLTAGE (latched, all off)");
+				break;
+			case PACK_STATE_ERROR_OVER_CURRENT:
+				modCommandsPrintf("    Pack fault          : OVER CURRENT");
+				break;
+			default:
+				modCommandsPrintf("    Pack fault          : UNKNOWN (%d)",(int)packState.packOperationalCellState);
+				break;
+		}
+
+		// [2] Operational state
+		modCommandsPrintf("[2] Operational state:");
+		switch(modOperationalStateCurrentState) {
+			case OP_STATE_ERROR:
+				modCommandsPrintf("    Op state            : ERROR"); break;
+			case OP_STATE_ERROR_PRECHARGE:
+				modCommandsPrintf("    Op state            : PRECHARGE ERROR"); break;
+			case OP_STATE_BATTERY_DEAD:
+				modCommandsPrintf("    Op state            : BATTERY DEAD"); break;
+			case OP_STATE_POWER_DOWN:
+				modCommandsPrintf("    Op state            : POWER DOWN"); break;
+			case OP_STATE_LOAD_ENABLED:
+				modCommandsPrintf("    Op state            : LOAD ENABLED"); break;
+			case OP_STATE_PRE_CHARGE:
+				modCommandsPrintf("    Op state            : PRECHARGING"); break;
+			case OP_STATE_CHARGING:
+				modCommandsPrintf("    Op state            : CHARGING"); break;
+			case OP_STATE_FORCEON:
+				modCommandsPrintf("    Op state            : FORCED ON"); break;
+			default:
+				modCommandsPrintf("    Op state            : OTHER (%d)",(int)modOperationalStateCurrentState); break;
+		}
+
+		// [3] Hard cell voltage flags (LTC6811, per-cell bitmask)
+		modCommandsPrintf("[3] Hard cell UV/OV flags (bit=cell):");
+		modCommandsPrintf("    Under-voltage mask  : 0x%X",(unsigned int)uvFlags);
+		modCommandsPrintf("    Over-voltage mask   : 0x%X",(unsigned int)ovFlags);
+		modCommandsPrintf("    UV/OV error count   : %d / %d",(int)modPowerElectronicsUnderAndOverVoltageErrorCount,(int)generalConfig->maxUnderAndOverVoltageErrorCount);
+		modCommandsPrintf("    Cell V low / high   : %.3fV / %.3fV",packState.cellVoltageLow,packState.cellVoltageHigh);
+		modCommandsPrintf("    Hard UV / OV limit  : %.3fV / %.3fV",generalConfig->cellHardUnderVoltage,generalConfig->cellHardOverVoltage);
+		modCommandsPrintf("    Soft UV LC / OV     : %.3fV / %.3fV",generalConfig->cellLCSoftUnderVoltage,generalConfig->cellSoftOverVoltage);
+
+		// [4] Protection allow flags (soft limits)
+		modCommandsPrintf("[4] Protection allow flags:");
+		modCommandsPrintf("    Discharge LC allow  : %s",packState.disChargeLCAllowed ? "YES" : "NO (soft UV / hard fault)");
+		modCommandsPrintf("    Discharge HC allow  : %s",packState.disChargeHCAllowed ? "YES" : "NO (soft UV)");
+		modCommandsPrintf("    Charge allow        : %s",packState.chargeAllowed ? "YES" : "NO (soft OV / hard fault)");
+		modCommandsPrintf("    Discharge desired   : %s",packState.disChargeDesired ? "YES" : "NO");
+		modCommandsPrintf("    Charge desired      : %s",packState.chargeDesired ? "YES" : "NO");
+
+		// [5] Safe operating area / temperature
+		modCommandsPrintf("[5] SOA / temperature (limit 70C):");
+		modCommandsPrintf("    Pack in SOA         : %s",packState.packInSOA ? "YES" : "NO (temp or ISL fault)");
+		modCommandsPrintf("    BMS temp high       : %.1fC",packState.tempBMSHigh);
+		modCommandsPrintf("    Battery temp high   : %.1fC",packState.tempBatteryHigh);
+		modCommandsPrintf("    ISL error count     : %d / 10",(int)modPowerElectronicsISLErrorCount);
+
+		// [6] CAN safety / watchdog
+		modCommandsPrintf("[6] CAN safety / watchdog:");
+		modCommandsPrintf("    CAN HC safety       : %s",packState.safetyOverCANHCSafeNSafe ? "SAFE" : "NOT SAFE");
+		modCommandsPrintf("    Watchdog remaining  : %d s",(int)packState.watchDogTime);
+
+		// [7] Aux board / slave alarms
+		modCommandsPrintf("[7] Aux / slave alarms:");
+		modCommandsPrintf("    HiAmp shield present: %s",packState.hiAmpShieldPresent ? "YES" : "NO");
+		modCommandsPrintf("    Aux0 load incorrect : %s",packState.aux0LoadIncorrect ? "YES" : "NO");
+		modCommandsPrintf("    Aux1 load incorrect : %s",packState.aux1LoadIncorrect ? "YES" : "NO");
+		modCommandsPrintf("    Aux DC/DC output OK : %s",packState.auxDCDCOutputOK ? "YES" : "NO");
+		modCommandsPrintf("    HiAmp precharge err : %s",packState.hiLoadPreChargeError ? "YES" : "NO");
+		modCommandsPrintf("----- End Fault Status -----");
+		modCommandsPrintf(" ");
+
+	} else if (strcmp(argv[0], "ping") == 0) {
 		modCommandsPrintf("pong\n");
 	} else if (strcmp(argv[0], "status") == 0) {
 		bool disChargeEnabled = packState.disChargeDesired && packState.disChargeLCAllowed;
 		bool chargeEnabled = packState.chargeDesired && packState.chargeAllowed;
-		 
-		modCommandsPrintf("-----Battery Pack Status-----");		
+
+		modCommandsPrintf("FW build  : 2026-11-23 1653 (LC/current low-pass restored)");
+		modCommandsPrintf("-----Battery Pack Status-----");	
 		modCommandsPrintf("Pack voltage          : %.2fV",packState.packVoltage);
 		modCommandsPrintf("Pack current          : %.2fA",packState.packCurrent);
 		modCommandsPrintf("Low  current          : %.2fA",packState.loCurrentLoadCurrent);
@@ -67,11 +160,20 @@ void terminal_process_string(char *str) {
 		modCommandsPrintf("Remaining capacity    : %.2fAh",generalStateOfCharge->remainingCapacityAh);
 		
 		switch(modOperationalStateCurrentState) {
+			case OP_STATE_INIT:
+				modCommandsPrintf("Operational state     : %s","Init");
+				break;
 			case OP_STATE_CHARGING:
 				modCommandsPrintf("Operational state     : %s","Charging");
 				break;
+			case OP_STATE_PRE_CHARGE:
+				modCommandsPrintf("Operational state     : %s","Pre charging");
+				break;
 			case OP_STATE_LOAD_ENABLED:
 				modCommandsPrintf("Operational state     : %s","Load enabled");
+				break;
+			case OP_STATE_BATTERY_DEAD:
+				modCommandsPrintf("Operational state     : %s","Battery dead");
 				break;
 			case OP_STATE_CHARGED:
 				modCommandsPrintf("Operational state     : %s","Charged");
@@ -105,7 +207,7 @@ void terminal_process_string(char *str) {
 		modCommandsPrintf("Cell voltage mismatch : %.3fV",packState.cellVoltageMisMatch);
 		modCommandsPrintf("Discharge enabled     : %s",disChargeEnabled ? "True" : "False");
 		modCommandsPrintf("Charge enabled        : %s",chargeEnabled ? "True" : "False");	
-    modCommandsPrintf("Power button pressed  : %s",packState.powerButtonActuated ? "True" : "False");		
+    modCommandsPrintf("Power button pressed  : %s",packState.powerButtonActuated ? "True" : "False");
 		modCommandsPrintf("---End Battery Pack Status---");
 		modCommandsPrintf(" ");
 		
@@ -256,6 +358,8 @@ void terminal_process_string(char *str) {
 		modCommandsPrintf("  Scan the I2C devices on the slave.");
 		modCommandsPrintf("status");
 		modCommandsPrintf("  Print battery measurements summary.");
+		modCommandsPrintf("fault");
+		modCommandsPrintf("  Print all fault / alarm states (7 groups).");
 		modCommandsPrintf("sens");
 		modCommandsPrintf("  Print all sensor values.");
 		modCommandsPrintf("cells");

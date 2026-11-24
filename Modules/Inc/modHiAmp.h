@@ -20,7 +20,7 @@
 #define I2CADDRADC           0x1D
 #define I2CADDRFANDriver     0x2E
 
-#define PRECHARGE_PERCENTAGE 		0.75f
+#define PRECHARGE_PERCENTAGE 		0.45f
 
 typedef enum {
 	RELAY_CONTROLLER_INIT = 0,

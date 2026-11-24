@@ -14,8 +14,8 @@
 
 #define NoOfCellsPossibleOnChip	12
 #define NoOfTempSensors         13
-#define PRECHARGE_PERCENTAGE 		0.75f
-#define TotalLTCICs							1
+#define PRECHARGE_PERCENTAGE 		0.35f
+#define TotalLTCICs							1  //ï¿½ï¿½LTC ICï¿½ï¿½ï¿½ï¿½
 #define ISLErrorThreshold       10
 
 typedef enum {
@@ -43,67 +43,67 @@ typedef enum {
 
 typedef struct {
 	// Master BMS
-	uint8_t  throttleDutyCharge;// ³äµçÕ¼¿Õ±È
-	uint8_t  throttleDutyDischarge;// ·ÅµçÕ¼¿Õ±È
-	float    SoC;// µç³ØºÉµç×´Ì¬
-	float    SoCCapacityAh;// µç³ØºÉµçÈÝÁ¿Ah
-	OperationalStateTypedef operationalState;// ²Ù×÷×´Ì¬
-	float    packVoltage;// µç³ØµçÑ¹
-	float    packCurrent;// µç³ØµçÁ÷
-	float    packPower;// µç³Ø¹¦ÂÊ
-	float    loCurrentLoadCurrent;// µÍµçÁ÷¸ºÔØµçÁ÷
-	float    loCurrentLoadVoltage;// µÍµçÁ÷¸ºÔØµçÑ¹
-	float    cellVoltageHigh;// µç³ØµçÑ¹¸ß
-	float    cellVoltageLow;// µç³ØµçÑ¹µÍ
-	float    cellVoltageAverage;// µç³ØµçÑ¹Æ½¾ù
-	float    cellVoltageMisMatch;// µç³ØµçÑ¹²»Æ¥Åä
-	uint16_t cellBalanceResistorEnableMask;// µç³ØÆ½ºâµç×èÊ¹ÄÜÑÚÂë
-	float    temperatures[NoOfTempSensors];// ÎÂ¶È´«¸ÐÆ÷ÎÂ¶È
-	float    tempBatteryHigh;// µç³ØÎÂ¶È¸ß
-	float    tempBatteryLow;// µç³ØÎÂ¶ÈµÍ
-	float    tempBatteryAverage;// µç³ØÎÂ¶ÈÆ½¾ù
-	float    tempBMSHigh;// BMSÎÂ¶È¸ß
-	float    tempBMSLow;// BMSÎÂ¶ÈµÍ
-	float    tempBMSAverage;// BMSÎÂ¶ÈÆ½¾ù
-	uint8_t  preChargeDesired;// Ô¤³äµçÐèÇó
-	uint8_t  disChargeDesired;// ·ÅµçÐèÇó
-	uint8_t  disChargeLCAllowed;// ·ÅµçLCÔÊÐí
-	uint8_t  disChargeHCAllowed;// ·ÅµçHCÔÊÐí
-	uint8_t  chargeDesired;// ³äµçÐèÇó
-	uint8_t  chargeAllowed;// ³äµçÔÊÐí
-	uint8_t  safetyOverCANHCSafeNSafe;// CAN HC°²È«N°²È«
-	uint8_t  chargeCurrentDetected;// ³äµçµçÁ÷¼ì²â
-	uint8_t  chargeBalanceActive;// ³äµç¾ùºâ¼¤»î
-	uint8_t  powerButtonActuated;// µçÔ´°´Å¥²Ù×÷
-	uint8_t  packInSOA;// µç³ØÔÚSOAÄÚ
-	uint8_t  watchDogTime;// ¿´ÃÅ¹·Ê±¼ä
-	driverLTC6811CellsTypedef cellVoltagesIndividual[NoOfCellsPossibleOnChip];// µç³ØµçÑ¹
-	modPowerElectronicsPackOperationalCellStatesTypedef packOperationalCellState;// µç³Ø²Ù×÷×´Ì¬0000
+	uint8_t  throttleDutyCharge;// ï¿½ï¿½ï¿½Õ¼ï¿½Õ±ï¿½
+	uint8_t  throttleDutyDischarge;// ï¿½Åµï¿½Õ¼ï¿½Õ±ï¿½
+	float    SoC;// ï¿½ï¿½ØºÉµï¿½×´Ì¬
+	float    SoCCapacityAh;// ï¿½ï¿½ØºÉµï¿½ï¿½ï¿½ï¿½ï¿½Ah
+	OperationalStateTypedef operationalState;// ï¿½ï¿½ï¿½ï¿½×´Ì¬
+	float    packVoltage;// ï¿½ï¿½Øµï¿½Ñ¹
+	float    packCurrent;// ï¿½ï¿½Øµï¿½ï¿½ï¿½
+	float    packPower;// ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½
+	float    loCurrentLoadCurrent;// ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½
+	float    loCurrentLoadVoltage;// ï¿½Íµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½Ñ¹
+	float    cellVoltageHigh;// ï¿½ï¿½Øµï¿½Ñ¹ï¿½ï¿½
+	float    cellVoltageLow;// ï¿½ï¿½Øµï¿½Ñ¹ï¿½ï¿½
+	float    cellVoltageAverage;// ï¿½ï¿½Øµï¿½Ñ¹Æ½ï¿½ï¿½
+	float    cellVoltageMisMatch;// ï¿½ï¿½Øµï¿½Ñ¹ï¿½ï¿½Æ¥ï¿½ï¿½
+	uint16_t cellBalanceResistorEnableMask;// ï¿½ï¿½ï¿½Æ½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	float    temperatures[NoOfTempSensors];// ï¿½Â¶È´ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â¶ï¿½
+	float    tempBatteryHigh;// ï¿½ï¿½ï¿½ï¿½Â¶È¸ï¿½
+	float    tempBatteryLow;// ï¿½ï¿½ï¿½ï¿½Â¶Èµï¿½
+	float    tempBatteryAverage;// ï¿½ï¿½ï¿½ï¿½Â¶ï¿½Æ½ï¿½ï¿½
+	float    tempBMSHigh;// BMSï¿½Â¶È¸ï¿½
+	float    tempBMSLow;// BMSï¿½Â¶Èµï¿½
+	float    tempBMSAverage;// BMSï¿½Â¶ï¿½Æ½ï¿½ï¿½
+	uint8_t  preChargeDesired;// Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t  disChargeDesired;// ï¿½Åµï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t  disChargeLCAllowed;// ï¿½Åµï¿½LCï¿½ï¿½ï¿½ï¿½
+	uint8_t  disChargeHCAllowed;// ï¿½Åµï¿½HCï¿½ï¿½ï¿½ï¿½
+	uint8_t  chargeDesired;// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t  chargeAllowed;// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t  safetyOverCANHCSafeNSafe;// CAN HCï¿½ï¿½È«Nï¿½ï¿½È«
+	uint8_t  chargeCurrentDetected;// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t  chargeBalanceActive;// ï¿½ï¿½ï¿½ï¿½ï¿½â¼¤ï¿½ï¿½
+	uint8_t  powerButtonActuated;// ï¿½ï¿½Ô´ï¿½ï¿½Å¥ï¿½ï¿½ï¿½ï¿½
+	uint8_t  packInSOA;// ï¿½ï¿½ï¿½ï¿½ï¿½SOAï¿½ï¿½
+	uint8_t  watchDogTime;// ï¿½ï¿½ï¿½Å¹ï¿½Ê±ï¿½ï¿½
+	driverLTC6811CellsTypedef cellVoltagesIndividual[NoOfCellsPossibleOnChip];// ï¿½ï¿½Øµï¿½Ñ¹
+	modPowerElectronicsPackOperationalCellStatesTypedef packOperationalCellState;// ï¿½ï¿½Ø²ï¿½ï¿½ï¿½×´Ì¬0000
 	
 	// Slave BMS
-	uint8_t  hiAmpShieldPresent;// ¸ßµçÁ÷¸ºÔØÆÁ±Î
-	float    hiCurrentLoadVoltage;// ¸ßµçÁ÷¸ºÔØµçÑ¹
-	float    hiCurrentLoadCurrent;// ¸ßµçÁ÷¸ºÔØµçÁ÷
-	float		 hiCurrentLoadPower;// ¸ßµçÁ÷¸ºÔØ¹¦ÂÊ
-	float    auxVoltage;// ¸¨ÖúµçÑ¹
-	float    auxCurrent;// ¸¨ÖúµçÁ÷
-	float		 auxPower;// ¸¨Öú¹¦ÂÊ
-	uint8_t  aux0EnableDesired;// ¸¨Öú0Ê¹ÄÜÐèÇó
-	uint8_t  aux0Enabled;// ¸¨Öú0Ê¹ÄÜ
-	uint8_t  aux0LoadIncorrect;// ¸¨Öú0¸ºÔØ´íÎó
-	uint8_t  aux1EnableDesired;// ¸¨Öú1Ê¹ÄÜÐèÇó
-	uint8_t  aux1Enabled;// ¸¨Öú1Ê¹ÄÜ
-	uint8_t  aux1LoadIncorrect;// ¸¨Öú1¸ºÔØ´íÎó
-	uint8_t  auxDCDCEnabled;// ¸¨ÖúDCDCÊ¹ÄÜ
-	uint8_t  auxDCDCOutputOK;// ¸¨ÖúDCDCÊä³öÕý³£
-	float    humidity;// Êª¶È
-	uint8_t  hiLoadEnabled;// ¸ßµçÁ÷¸ºÔØÊ¹ÄÜ
-	uint8_t  hiLoadPreChargeEnabled;// ¸ßµçÁ÷¸ºÔØÔ¤³äµçÊ¹ÄÜ
-	uint8_t  hiLoadPreChargeError;// ¸ßµçÁ÷¸ºÔØÔ¤³äµç´íÎó
-	uint8_t	 IOIN1;// IOÊäÈë1
-	uint8_t  IOOUT0;// IOÊä³ö0
-	uint8_t  FANSpeedDutyDesired;// ·çÉÈ×ªËÙÕ¼¿Õ±ÈÐèÇó
-	driverSWEMC2305FanStatusTypeDef FANStatus;// ·çÉÈ×´Ì¬
+	uint8_t  hiAmpShieldPresent;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	float    hiCurrentLoadVoltage;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½Ñ¹
+	float    hiCurrentLoadCurrent;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½
+	float		 hiCurrentLoadPower;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¹ï¿½ï¿½ï¿½
+	float    auxVoltage;// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ñ¹
+	float    auxCurrent;// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	float		 auxPower;// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t  aux0EnableDesired;// ï¿½ï¿½ï¿½ï¿½0Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t  aux0Enabled;// ï¿½ï¿½ï¿½ï¿½0Ê¹ï¿½ï¿½
+	uint8_t  aux0LoadIncorrect;// ï¿½ï¿½ï¿½ï¿½0ï¿½ï¿½ï¿½Ø´ï¿½ï¿½ï¿½
+	uint8_t  aux1EnableDesired;// ï¿½ï¿½ï¿½ï¿½1Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t  aux1Enabled;// ï¿½ï¿½ï¿½ï¿½1Ê¹ï¿½ï¿½
+	uint8_t  aux1LoadIncorrect;// ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½Ø´ï¿½ï¿½ï¿½
+	uint8_t  auxDCDCEnabled;// ï¿½ï¿½ï¿½ï¿½DCDCÊ¹ï¿½ï¿½
+	uint8_t  auxDCDCOutputOK;// ï¿½ï¿½ï¿½ï¿½DCDCï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	float    humidity;// Êªï¿½ï¿½
+	uint8_t  hiLoadEnabled;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½
+	uint8_t  hiLoadPreChargeEnabled;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½
+	uint8_t  hiLoadPreChargeError;// ï¿½ßµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	uint8_t	 IOIN1;// IOï¿½ï¿½ï¿½ï¿½1
+	uint8_t  IOOUT0;// IOï¿½ï¿½ï¿½0
+	uint8_t  FANSpeedDutyDesired;// ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½Õ¼ï¿½Õ±ï¿½ï¿½ï¿½ï¿½ï¿½
+	driverSWEMC2305FanStatusTypeDef FANStatus;// ï¿½ï¿½ï¿½ï¿½×´Ì¬
 } modPowerElectricsPackStateTypedef;
 
 void modPowerElectronicsInit(modPowerElectricsPackStateTypedef *packState, modConfigGeneralConfigStructTypedef *generalConfig);
@@ -127,3 +127,6 @@ bool modPowerElectronicsHCSafetyCANAndPowerButtonCheck(void);
 void modPowerElectronicsResetBalanceModeActiveTimeout(void);
 
 #endif
+
+
+

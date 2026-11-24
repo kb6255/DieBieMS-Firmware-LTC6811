@@ -1,0 +1,23 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Allman style: opening brace on a new line for functions / control statements
+BreakBeforeBraces: Allman
+
+# Do not collapse functions or if-statements to a single line
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+# No line length limit
+ColumnLimit: 0
+
+# Pointer / reference alignment: left
+PointerAlignment: Left
+
+# Alphabetical include sorting
+SortIncludes: CaseSensitive
+...

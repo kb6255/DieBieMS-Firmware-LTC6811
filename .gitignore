@@ -19,3 +19,13 @@ asccprj.scc
 *.PrjPCBStructure
 *.wmf
 Project\ Outputs*
+MDK-ARM/DieBieMS/
+*.uvguix.*
+# Keil编译输出
+MDK-ARM/**/*.axf
+MDK-ARM/**/*.bin
+MDK-ARM/**/*.hex
+MDK-ARM/**/*.map
+MDK-ARM/**/*.dep
+*.uvoptx
+

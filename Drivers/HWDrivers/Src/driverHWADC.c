@@ -32,7 +32,7 @@ void driverHWADCInit(void) {
 	
 	// ADC config	
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;				// AHB=72MHz -> ADC=18MHz (F303 ADC max 36MHz; /1 was 2x overclock -> unstable readings)
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
@@ -70,19 +70,37 @@ void driverHWADCSetInputChannel(ADC_HandleTypeDef* hadc, uint32_t inputChannel) 
 bool driverHWADCGetLoadVoltage(float *loCurrentLoadVoltage) {
 	uint32_t driverHWADCAverageSum = 0;
 	uint8_t	driverHWADCAverageCount = 0;
-	
+	uint8_t driverHWADCAverageValid = 0;
+	float measured;
+	static float filteredLoadVoltage = 0.0f;
+	static bool firstRun = true;
+
 	driverHWADCSetInputChannel(&hadc1,ADC_CHANNEL_2);
 
 	driverHWADCAverageSum = 0;
+	driverHWADCAverageValid = 0;
 	for(driverHWADCAverageCount = 0; driverHWADCAverageCount < NoOfAverages; driverHWADCAverageCount++) {
 		HAL_ADC_Start(&hadc1);
-		if (HAL_ADC_PollForConversion(&hadc1, 1) == HAL_OK) {
+		if (HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) {
 			driverHWADCAverageSum += HAL_ADC_GetValue(&hadc1);
+			driverHWADCAverageValid++;
 		};
 	};
-	
-	uint16_t temp = driverHWADCAverageSum/NoOfAverages;
-	*loCurrentLoadVoltage = temp*(3.3f/4096*17.4f);
+
+	if(driverHWADCAverageValid == 0) {
+		return true;
+	}
+
+	uint16_t temp = driverHWADCAverageSum/driverHWADCAverageValid;
+	measured = temp*(3.3f/4096*17.4f);
+
+	if(firstRun) {
+		filteredLoadVoltage = measured;
+		firstRun = false;
+	} else {
+		filteredLoadVoltage += 0.25f*(measured - filteredLoadVoltage);
+	}
+	*loCurrentLoadVoltage = filteredLoadVoltage;
 
 	return false;
 };

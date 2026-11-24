@@ -1,0 +1,12 @@
+*** Using Compiler 'V5.06 update 5 (build 528)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'DieBieMS'
+compiling driverSWISL28022.c...
+..\Drivers\SWDrivers\Src\driverSWISL28022.c(20): warning:  #550-D: variable "busCurrentInt"  was set but never used
+  	static int16_t busCurrentInt;
+..\Drivers\SWDrivers\Src\driverSWISL28022.c: 1 warning, 0 errors
+linking...
+Program Size: Code=69428 RO-data=11188 RW-data=576 ZI-data=19360  
+FromELF: creating hex file...
+After Build - User command #1: C:\Keil_v5\\ARM\ARMCC\bin\fromelf.exe --bincombined --output=DieBieMS\DieBieMS.bin DieBieMS\DieBieMS.axf
+"DieBieMS\DieBieMS.axf" - 0 Error(s), 1 Warning(s).
+Build Time Elapsed:  00:00:03

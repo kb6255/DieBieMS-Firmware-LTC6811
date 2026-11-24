@@ -15,14 +15,14 @@ typedef struct {
 } driverLTC6811CellsTypedef;
 
 typedef struct {
-	uint16_t DisChargeEnableMask;
-	uint8_t  noOfCells;
-	float    CellUnderVoltageLimit;
-	float    CellOverVoltageLimit;
-	uint8_t  ADCOPT;
-	uint8_t  REFON;
-	uint8_t  GPIO[5];
-	uint8_t  CDCMode;
+	uint16_t DisChargeEnableMask;//禁用充电使能掩码
+	uint8_t  noOfCells;//电池数量
+	float    CellUnderVoltageLimit;//电池电压下限
+	float    CellOverVoltageLimit;//电池电压上限
+	uint8_t  ADCOPT;//ADC选项
+	uint8_t  REFON;//参考电压使能
+	uint8_t  GPIO[5];//GPIO引脚状态
+	uint8_t  CDCMode;//CDC模式
 } driverLTC6811ConfigStructTypedef;
 
 void    driverSWLTC6811Init(driverLTC6811ConfigStructTypedef configStruct, uint8_t totalNumberOfLTCs);
